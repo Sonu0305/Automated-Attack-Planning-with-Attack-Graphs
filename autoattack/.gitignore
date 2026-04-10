@@ -1,0 +1,55 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Runtime artefacts
+*.pkl
+cve_cache.db
+detection_scores.json
+execution_log.jsonl
+*.log
+
+# Results & reports (generated at runtime)
+results/
+*.html
+*.dot
+*.png
+
+# Secrets & credentials — NEVER commit these
+.env
+*.env
+secrets.yaml
+
+# Config overrides with real credentials
+# (keep config.yaml since it uses ${ENV_VAR} placeholders — safe to commit)
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

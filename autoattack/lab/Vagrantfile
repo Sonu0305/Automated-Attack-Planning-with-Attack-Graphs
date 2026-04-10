@@ -1,0 +1,74 @@
+# AutoAttack Virtual Lab — 3-Host Network
+# ─────────────────────────────────────────────────────────────────────────────
+# Network topology:
+#   192.168.56.10  attacker   — Kali Linux (Metasploit, Nmap, Snort, Neo4j)
+#   192.168.56.20  target1    — Ubuntu 22.04 (vulnerable SSH + Apache)
+#   192.168.56.30  target2    — Windows Server 2019 (SMBv1, WinRM)
+#
+# Usage:
+#   vagrant up              # Start all three VMs
+#   vagrant status          # Check VM states
+#   vagrant ssh attacker    # SSH into the Kali attacker
+#   vagrant destroy -f      # Remove all VMs
+# ─────────────────────────────────────────────────────────────────────────────
+
+Vagrant.configure("2") do |config|
+
+  # Disable default shared folder to avoid VirtualBox Guest Additions issues.
+  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
+  # ── Attacker — Kali Linux ─────────────────────────────────────────────────
+  config.vm.define "attacker" do |a|
+    a.vm.box = "kalilinux/rolling"
+    a.vm.hostname = "attacker"
+    a.vm.network "private_network", ip: "192.168.56.10"
+
+    a.vm.provider "virtualbox" do |v|
+      v.name   = "autoattack-kali"
+      v.memory = 4096
+      v.cpus   = 2
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    end
+
+    a.vm.provision "shell", path: "provision_attacker.sh"
+    a.vm.provision "shell", inline: <<~SHELL
+      echo '192.168.56.10 attacker' >> /etc/hosts
+      echo '192.168.56.20 target-linux' >> /etc/hosts
+      echo '192.168.56.30 target-windows' >> /etc/hosts
+      echo '192.168.56.40 target-pivot' >> /etc/hosts
+    SHELL
+  end
+
+  # ── Target 1 — Ubuntu 22.04 (deliberately vulnerable) ────────────────────
+  config.vm.define "target1" do |t|
+    t.vm.box = "ubuntu/jammy64"
+    t.vm.hostname = "target-linux"
+    t.vm.network "private_network", ip: "192.168.56.20"
+
+    t.vm.provider "virtualbox" do |v|
+      v.name   = "autoattack-target1"
+      v.memory = 2048
+      v.cpus   = 1
+    end
+
+    t.vm.provision "shell", path: "provision_target1.sh"
+  end
+
+  # ── Target 2 — Windows Server 2019 (deliberately vulnerable) ─────────────
+  config.vm.define "target2" do |t|
+    t.vm.box = "gusztavvargadr/windows-server"
+    t.vm.hostname = "target-windows"
+    t.vm.network "private_network", ip: "192.168.56.30"
+
+    t.vm.provider "virtualbox" do |v|
+      v.name   = "autoattack-target2"
+      v.memory = 4096
+      v.cpus   = 2
+      v.gui    = false
+    end
+
+    t.vm.communicator = "winssh"
+    t.vm.provision "shell", path: "provision_target2.sh", privileged: true
+  end
+
+end

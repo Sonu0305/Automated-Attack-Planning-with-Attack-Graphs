@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<!--
+  AutoAttack test fixture — Nmap XML scan of the lab network.
+  3 hosts: attacker (192.168.56.10), target-linux (192.168.56.20),
+           target-windows (192.168.56.30).
+
+  Used by tests/test_graph_builder.py.  No real scan was performed;
+  this data is synthetic and crafted to produce exploitable attack edges.
+-->
+<nmaprun scanner="nmap" args="nmap -sV -oX scan_fixture.xml 192.168.56.0/24"
+         start="1712345600" startstr="Thu Apr 10 10:00:00 2026"
+         version="7.94" xmloutputversion="1.05">
+
+  <!-- ── Attacker node ──────────────────────────────────────────────────── -->
+  <host starttime="1712345600" endtime="1712345610">
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="192.168.56.10" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="attacker" type="PTR"/>
+    </hostnames>
+    <os>
+      <osmatch name="Linux 5.15" accuracy="95">
+        <osclass type="general purpose" vendor="Linux" osfamily="Linux"
+                 osgen="5.X" accuracy="95"/>
+      </osmatch>
+    </os>
+    <ports>
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssh" product="OpenSSH" version="9.2p1" method="probed"/>
+      </port>
+    </ports>
+  </host>
+
+  <!-- ── Target 1 — Ubuntu (Linux vulnerable) ──────────────────────────── -->
+  <host starttime="1712345611" endtime="1712345625">
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="192.168.56.20" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="target-linux" type="PTR"/>
+    </hostnames>
+    <os>
+      <osmatch name="Ubuntu Linux 22.04" accuracy="98">
+        <osclass type="general purpose" vendor="Canonical" osfamily="Linux"
+                 osgen="22.X" accuracy="98"/>
+      </osmatch>
+    </os>
+    <ports>
+      <!-- CVE-2018-10933: libssh authentication bypass -->
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssh" product="OpenSSH" version="7.4p1" method="probed"/>
+      </port>
+      <!-- CVE-2021-41773: Apache path traversal + RCE -->
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Apache httpd" version="2.4.49" method="probed"/>
+      </port>
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="smb" product="Samba smbd" version="4.15.0" method="probed"/>
+      </port>
+    </ports>
+  </host>
+
+  <!-- ── Target 2 — Windows Server (vulnerable DC) ─────────────────────── -->
+  <host starttime="1712345626" endtime="1712345645">
+    <status state="up" reason="echo-reply" reason_ttl="128"/>
+    <address addr="192.168.56.30" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="target-windows" type="PTR"/>
+    </hostnames>
+    <os>
+      <osmatch name="Windows Server 2019" accuracy="97">
+        <osclass type="general purpose" vendor="Microsoft" osfamily="Windows"
+                 osgen="2019" accuracy="97"/>
+      </osmatch>
+    </os>
+    <ports>
+      <!-- CVE-2017-0144: EternalBlue / MS17-010 -->
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="smb" product="Microsoft Windows SMBv1" version="SMBv1"
+                 method="probed"/>
+      </port>
+      <!-- CVE-2019-0708: BlueKeep RDP -->
+      <port protocol="tcp" portid="3389">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="rdp" product="Microsoft Terminal Services" version="RDP_8.0"
+                 method="probed"/>
+      </port>
+      <port protocol="tcp" portid="135">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="msrpc" product="Microsoft Windows RPC" method="probed"/>
+      </port>
+    </ports>
+  </host>
+
+</nmaprun>

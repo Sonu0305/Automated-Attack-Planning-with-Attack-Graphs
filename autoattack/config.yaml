@@ -1,0 +1,86 @@
+# AutoAttack Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+# Secrets are read from environment variables using ${VAR} syntax.
+# Set the following before running:
+#   export MSF_RPC_PASSWORD="msfrpc_password"
+#   export OPENAI_API_KEY="sk-..."
+#   export NEO4J_PASSWORD="neo4j"
+#   export NVD_API_KEY="..."   # optional — increases NVD rate limit
+# ─────────────────────────────────────────────────────────────────────────────
+
+lab:
+  attacker_ip: "192.168.56.10"
+  network: "192.168.56.0/24"
+  hosts:
+    - ip: "192.168.56.20"
+      hostname: "target-linux"
+      os: "ubuntu-22.04"
+      role: "webserver"
+      deliberately_vulnerable:
+        - service: "ssh"
+          version: "OpenSSH_7.4"
+          cve: "CVE-2018-10933"
+        - service: "http"
+          version: "Apache/2.4.49"
+          cve: "CVE-2021-41773"
+
+    - ip: "192.168.56.30"
+      hostname: "target-windows"
+      os: "windows-server-2019"
+      role: "domain_controller"
+      deliberately_vulnerable:
+        - service: "smb"
+          version: "SMBv1"
+          cve: "CVE-2017-0144"
+        - service: "rdp"
+          version: "RDP_8.0"
+          cve: "CVE-2019-0708"
+
+    - ip: "192.168.56.40"
+      hostname: "target-pivot"
+      os: "ubuntu-20.04"
+      role: "database"
+      deliberately_vulnerable:
+        - service: "mysql"
+          version: "MySQL_5.7.32"
+          cve: "CVE-2021-27928"
+
+  goal: "192.168.56.30"
+
+# ─── Metasploit RPC ──────────────────────────────────────────────────────────
+metasploit:
+  host: "127.0.0.1"
+  port: 55553
+  password: "${MSF_RPC_PASSWORD}"    # Set via environment variable
+
+# ─── OpenAI LLM Planner ──────────────────────────────────────────────────────
+openai:
+  api_key: "${OPENAI_API_KEY}"       # Set via environment variable
+  model: "gpt-4o"
+  max_retries: 3
+
+# ─── Neo4j Graph Database ─────────────────────────────────────────────────────
+neo4j:
+  uri: "bolt://localhost:7687"
+  user: "neo4j"
+  password: "${NEO4J_PASSWORD}"      # Set via environment variable
+
+# ─── IDS Monitoring ──────────────────────────────────────────────────────────
+ids:
+  type: "snort"                      # "snort" | "suricata"
+  log_path: "/var/log/snort/fast.log"
+  alert_threshold: 3                 # Trigger replan if >= this many alerts per step
+
+# ─── Planner Settings ─────────────────────────────────────────────────────────
+planner:
+  default: "astar"                   # "astar" | "llm" | "rl" | "detection"
+  detection_alpha: 0.5               # Weight for exploit difficulty (0.0–1.0)
+  detection_beta: 0.5                # Weight for IDS detection (0.0–1.0)
+  rl_qtable_path: "qtable.pkl"
+  rl_episodes: 5000
+
+# ─── Evaluation Settings ──────────────────────────────────────────────────────
+evaluation:
+  runs_per_planner: 20               # Statistical repetitions per planner
+  output_dir: "./results/"
+  generate_dashboard: true
