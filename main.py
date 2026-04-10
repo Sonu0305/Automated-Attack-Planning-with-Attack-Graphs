@@ -75,10 +75,10 @@ class MetasploitConfig:
 
 
 @dataclass
-class OpenAIConfig:
-    """OpenAI API settings."""
+class GroqConfig:
+    """Groq API settings."""
     api_key: str = ""
-    model: str = "gpt-4o"
+    model: str = "llama-3.3-70b-versatile"
     max_retries: int = 3
 
 
@@ -124,7 +124,7 @@ class Config:
     goal: str = "192.168.56.30"
     hosts: list[LabHost] = field(default_factory=list)
     metasploit: MetasploitConfig = field(default_factory=MetasploitConfig)
-    openai: OpenAIConfig = field(default_factory=OpenAIConfig)
+    groq: GroqConfig = field(default_factory=GroqConfig)
     neo4j: Neo4jConfig = field(default_factory=Neo4jConfig)
     ids: IDSConfig = field(default_factory=IDSConfig)
     planner: PlannerConfig = field(default_factory=PlannerConfig)
@@ -157,7 +157,7 @@ def load_config(path: str = "config.yaml") -> Config:
 
     lab = data.get("lab", {})
     msf_raw = data.get("metasploit", {})
-    oai_raw = data.get("openai", {})
+    groq_raw = data.get("groq", {})
     neo_raw = data.get("neo4j", {})
     ids_raw = data.get("ids", {})
     plan_raw = data.get("planner", {})
@@ -184,10 +184,10 @@ def load_config(path: str = "config.yaml") -> Config:
             password=msf_raw.get("password", ""),
             attacker_ip=lab.get("attacker_ip", "127.0.0.1"),
         ),
-        openai=OpenAIConfig(
-            api_key=oai_raw.get("api_key", ""),
-            model=oai_raw.get("model", "gpt-4o"),
-            max_retries=int(oai_raw.get("max_retries", 3)),
+        groq=GroqConfig(
+            api_key=groq_raw.get("api_key", ""),
+            model=groq_raw.get("model", "llama-3.3-70b-versatile"),
+            max_retries=int(groq_raw.get("max_retries", 3)),
         ),
         neo4j=Neo4jConfig(
             uri=neo_raw.get("uri", "bolt://localhost:7687"),
@@ -567,9 +567,9 @@ def _make_planner(name: str, cfg: Config) -> object:
 
     if name == "llm":
         from planners.llm_planner import LLMPlanner
-        if not cfg.openai.api_key:
-            raise ValueError("OpenAI API key not set. Export OPENAI_API_KEY.")
-        return LLMPlanner(api_key=cfg.openai.api_key, model=cfg.openai.model, max_retries=cfg.openai.max_retries)
+        if not cfg.groq.api_key:
+            raise ValueError("Groq API key not set. Export GROQ_API_KEY.")
+        return LLMPlanner(api_key=cfg.groq.api_key, model=cfg.groq.model, max_retries=cfg.groq.max_retries)
 
     if name == "rl":
         from planners.rl_planner import RLPlanner

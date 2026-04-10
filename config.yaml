@@ -3,7 +3,7 @@
 # Secrets are read from environment variables using ${VAR} syntax.
 # Set the following before running:
 #   export MSF_RPC_PASSWORD="msfrpc_password"
-#   export OPENAI_API_KEY="sk-..."
+#   export GROQ_API_KEY="gsk_..."
 #   export NEO4J_PASSWORD="neo4j"
 #   export NVD_API_KEY="..."   # optional — increases NVD rate limit
 # ─────────────────────────────────────────────────────────────────────────────
@@ -53,10 +53,10 @@ metasploit:
   port: 55553
   password: "${MSF_RPC_PASSWORD}"    # Set via environment variable
 
-# ─── OpenAI LLM Planner ──────────────────────────────────────────────────────
-openai:
-  api_key: "${OPENAI_API_KEY}"       # Set via environment variable
-  model: "gpt-4o"
+# ─── Groq LLM Planner ────────────────────────────────────────────────────────
+groq:
+  api_key: "${GROQ_API_KEY}"         # Set via environment variable
+  model: "llama-3.3-70b-versatile"
   max_retries: 3
 
 # ─── Neo4j Graph Database ─────────────────────────────────────────────────────

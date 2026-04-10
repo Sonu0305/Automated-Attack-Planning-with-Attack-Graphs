@@ -495,7 +495,7 @@ Edge Cost:   10.0  9.0  8.0  7.0  6.0  5.0  4.0  3.0  2.0  1.0  0.0
 
 **Class:** `LLMPlanner(BasePlanner)`
 
-**Constructor:** `__init__(api_key: str, model: str = "gpt-4o", max_retries: int = 3)`
+**Constructor:** `__init__(api_key: str, model: str = "llama-3.3-70b-versatile", max_retries: int = 3)`
 
 **Method:** `plan(graph, start, goal) -> list[AttackEdge]`
 
@@ -512,12 +512,12 @@ Step 2: Build system prompt
         Each step must be: {"source_ip", "target_ip", "cve_id", "exploit_module", "reason"}.
         Only use edges that exist in the graph. Output JSON only. No prose. No markdown."
 
-Step 3: Call API (OpenAI or Anthropic)
+Step 3: Call API (Groq or Anthropic)
    └── messages = [
            {"role": "system", "content": SYSTEM_PROMPT},
            {"role": "user", "content": GRAPH_SERIALIZATION}
        ]
-   └── response = openai.chat.completions.create(model=model, messages=messages)
+   └── response = groq.chat.completions.create(model=model, messages=messages)
 
 Step 4: Parse and validate
    └── json.loads(response.content)
@@ -1139,9 +1139,9 @@ metasploit:
   port: 55553
   password: "${MSF_RPC_PASSWORD}"    # Set via env var
 
-openai:
-  api_key: "${OPENAI_API_KEY}"       # Set via env var
-  model: "gpt-4o"
+groq:
+  api_key: "${GROQ_API_KEY}"         # Set via env var
+  model: "llama-3.3-70b-versatile"
   max_retries: 3
 
 neo4j:
@@ -1430,7 +1430,7 @@ def test_raises_on_no_path():
 #### `tests/test_llm_planner.py`
 
 ```python
-@patch("openai.chat.completions.create")
+@patch("groq.chat.completions.create")
 def test_llm_planner_parses_valid_json(mock_create):
     mock_create.return_value = MockResponse(json.dumps([
         {"source_ip": "192.168.56.10", "target_ip": "192.168.56.20",
@@ -1443,7 +1443,7 @@ def test_llm_planner_parses_valid_json(mock_create):
     assert len(path) == 1
     assert path[0].cve_id == "CVE-2017-0144"
 
-@patch("openai.chat.completions.create")
+@patch("groq.chat.completions.create")
 def test_llm_planner_retries_on_invalid_json(mock_create):
     # First call returns invalid JSON, second returns valid
     mock_create.side_effect = [
@@ -1664,4 +1664,3 @@ Link to report.json
 | 5 | Ou et al. (2005). *MulVAL: A Logic-based Network Security Analyzer.* DSN. |
 | 6 | MITRE ATT&CK Framework. https://attack.mitre.org |
 | 7 | NIST NVD CVE API v2.0. https://nvd.nist.gov/developers/vulnerabilities |
-

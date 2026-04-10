@@ -220,7 +220,7 @@ pip install -r requirements.txt
 
 ```bash
 export MSF_RPC_PASSWORD="your-msfrpc-password"
-export OPENAI_API_KEY="your-openai-api-key"
+export GROQ_API_KEY="your-groq-api-key"
 export NEO4J_PASSWORD="your-neo4j-password"
 export NVD_API_KEY="your-nvd-api-key"   # optional but useful
 ```
@@ -501,7 +501,7 @@ The graph-building tests use the bundled fixture:
 - Lab network and host metadata
 - Default goal host
 - Metasploit RPC settings
-- OpenAI model and retries
+- Groq model and retries
 - Neo4j connection details
 - IDS type, log path, and alert threshold
 - Planner defaults and RL settings
@@ -509,7 +509,7 @@ The graph-building tests use the bundled fixture:
 
 Notable defaults:
 
-- OpenAI model: `gpt-4o`
+- Groq model: `llama-3.3-70b-versatile`
 - Default planner: `astar`
 - RL episodes: `5000`
 - Evaluation runs per planner: `20`
@@ -534,7 +534,7 @@ A few important expectations to set clearly:
 
 - This codebase is strongest as a controlled-lab research framework.
 - Some integrations are designed to support both real backends and dry-run simulation.
-- The LLM planner requires an OpenAI API key and network access.
+- The LLM planner requires a Groq API key and network access.
 - The RL planner requires a previously trained `qtable.pkl`.
 - Detection-aware planning is only as meaningful as the IDS scoring model behind each action.
 - Real-world offensive use outside an authorized environment would be inappropriate and unsafe.

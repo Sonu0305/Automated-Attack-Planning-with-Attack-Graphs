@@ -1,9 +1,9 @@
 """LLM-guided attack planner based on Incalmo (Singer et al., 2025).
 
-Serialises the attack graph to a text description, asks an LLM (OpenAI
-GPT-4o by default) to produce a JSON attack plan, validates every step
-against the actual graph edges, and retries with error feedback on
-failure.
+Serialises the attack graph to a text description, asks an LLM (Groq
+Llama 3.3 70B by default) to produce a JSON attack plan, validates
+every step against the actual graph edges, and retries with error
+feedback on failure.
 
 Supports mid-run replanning via ``plan_with_context()`` which includes
 prior execution context (completed steps, failed step, IDS alert info)
@@ -23,6 +23,11 @@ import time
 from typing import Optional
 
 import networkx as nx
+
+try:
+    from groq import Groq
+except ImportError:  # pragma: no cover - exercised in environments without Groq installed
+    Groq = None  # type: ignore[assignment]
 
 from graph.models import AttackEdge
 from planners.base_planner import BasePlanner, NoPlanFoundError
@@ -57,30 +62,34 @@ Fix the JSON and output ONLY the corrected JSON array.\
 
 
 class LLMPlanner(BasePlanner):
-    """GPT-4o guided planner that calls the OpenAI Chat Completions API.
+    """Groq-guided planner that calls the Groq Chat Completions API.
 
     Attributes:
-        model: OpenAI model identifier.
+        model: Groq model identifier.
         max_retries: Maximum number of parse/validation retry attempts.
     """
 
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-4o",
+        model: str = "llama-3.3-70b-versatile",
         max_retries: int = 3,
     ) -> None:
         """Initialise the LLM planner with API credentials.
 
         Args:
-            api_key: OpenAI API key.
-            model: Chat model identifier, e.g. ``"gpt-4o"``.
+            api_key: Groq API key.
+            model: Chat model identifier, e.g. ``"llama-3.3-70b-versatile"``.
             max_retries: How many times to retry on bad JSON or invalid
                 edges before raising ``NoPlanFoundError``.
         """
-        import openai  # deferred import — optional dependency
+        if Groq is None:
+            raise ImportError(
+                "The 'groq' package is required for the LLM planner. "
+                "Install dependencies with: pip install -r requirements.txt"
+            )
 
-        self._client = openai.OpenAI(api_key=api_key)
+        self._client = Groq(api_key=api_key)
         self.model = model
         self.max_retries = max_retries
 
@@ -223,7 +232,7 @@ class LLMPlanner(BasePlanner):
         )
 
     def _call_api(self, messages: list[dict]) -> str:
-        """Make a single OpenAI Chat Completions API call.
+        """Make a single Groq Chat Completions API call.
 
         Args:
             messages: Full message history for the API call.
@@ -239,12 +248,11 @@ class LLMPlanner(BasePlanner):
                 model=self.model,
                 messages=messages,  # type: ignore[arg-type]
                 temperature=0.2,
-                timeout=60,
             )
             content = response.choices[0].message.content or ""
             return content.strip()
         except Exception as exc:
-            raise NoPlanFoundError(f"OpenAI API error: {exc}") from exc
+            raise NoPlanFoundError(f"Groq API error: {exc}") from exc
 
 
 # ---------------------------------------------------------------------------

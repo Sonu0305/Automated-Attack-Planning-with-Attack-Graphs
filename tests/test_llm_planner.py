@@ -1,6 +1,6 @@
 """Unit tests for planners/llm_planner.py.
 
-All OpenAI API calls are mocked so tests run without network access or
+All Groq API calls are mocked so tests run without network access or
 a real API key.
 """
 
@@ -69,7 +69,7 @@ def build_test_graph() -> nx.DiGraph:
 
 
 def _mock_response(content: str) -> MagicMock:
-    """Create a minimal mock object matching the OpenAI ChatCompletion response.
+    """Create a minimal mock object matching the Groq chat response.
 
     Args:
         content: The text content of the first choice's message.
@@ -88,7 +88,7 @@ def _mock_response(content: str) -> MagicMock:
 
 
 class TestLLMPlanner:
-    """Tests for LLMPlanner with mocked OpenAI calls."""
+    """Tests for LLMPlanner with mocked Groq calls."""
 
     START = "192.168.56.10"
     GOAL  = "192.168.56.30"
@@ -104,18 +104,18 @@ class TestLLMPlanner:
     ])
 
     def _make_planner(self):
-        """Return an LLMPlanner with a mocked OpenAI client.
+        """Return an LLMPlanner with a mocked Groq client.
 
         Returns:
             Tuple of ``(LLMPlanner, mock_create)``.
         """
-        with patch("openai.OpenAI") as mock_openai_cls:
+        with patch("planners.llm_planner.Groq") as mock_groq_cls:
             from planners.llm_planner import LLMPlanner
             planner = LLMPlanner(api_key="test-key-not-real", max_retries=3)
             return planner, planner._client.chat.completions.create
 
-    @patch("openai.OpenAI")
-    def test_parses_valid_json_response(self, mock_openai_cls):
+    @patch("planners.llm_planner.Groq")
+    def test_parses_valid_json_response(self, mock_groq_cls):
         """LLMPlanner must return AttackEdge list from a valid JSON response."""
         from planners.llm_planner import LLMPlanner
 
@@ -132,8 +132,8 @@ class TestLLMPlanner:
         assert path[0].source_host == self.START
         assert path[0].target_host == self.GOAL
 
-    @patch("openai.OpenAI")
-    def test_retries_on_invalid_json(self, mock_openai_cls):
+    @patch("planners.llm_planner.Groq")
+    def test_retries_on_invalid_json(self, mock_groq_cls):
         """LLMPlanner must retry when the first response is not valid JSON."""
         from planners.llm_planner import LLMPlanner
 
@@ -149,8 +149,8 @@ class TestLLMPlanner:
         assert planner._client.chat.completions.create.call_count == 2
         assert len(path) == 1
 
-    @patch("openai.OpenAI")
-    def test_raises_after_max_retries(self, mock_openai_cls):
+    @patch("planners.llm_planner.Groq")
+    def test_raises_after_max_retries(self, mock_groq_cls):
         """LLMPlanner must raise NoPlanFoundError after exhausting all retries."""
         from planners.llm_planner import LLMPlanner
 
@@ -165,8 +165,8 @@ class TestLLMPlanner:
 
         assert planner._client.chat.completions.create.call_count == 2
 
-    @patch("openai.OpenAI")
-    def test_rejects_hallucinated_edges(self, mock_openai_cls):
+    @patch("planners.llm_planner.Groq")
+    def test_rejects_hallucinated_edges(self, mock_groq_cls):
         """LLMPlanner must retry when the response contains non-existent edges."""
         from planners.llm_planner import LLMPlanner
 
@@ -188,8 +188,8 @@ class TestLLMPlanner:
         with pytest.raises(NoPlanFoundError):
             planner.plan(G, self.START, self.GOAL)
 
-    @patch("openai.OpenAI")
-    def test_strips_markdown_fences(self, mock_openai_cls):
+    @patch("planners.llm_planner.Groq")
+    def test_strips_markdown_fences(self, mock_groq_cls):
         """LLMPlanner must handle JSON wrapped in markdown code fences."""
         from planners.llm_planner import LLMPlanner
 
@@ -201,8 +201,8 @@ class TestLLMPlanner:
         path = planner.plan(G, self.START, self.GOAL)
         assert len(path) == 1
 
-    @patch("openai.OpenAI")
-    def test_plan_with_context_includes_state(self, mock_openai_cls):
+    @patch("planners.llm_planner.Groq")
+    def test_plan_with_context_includes_state(self, mock_groq_cls):
         """plan_with_context must include current_state in the API messages."""
         from planners.llm_planner import LLMPlanner
 
@@ -222,7 +222,11 @@ class TestLLMPlanner:
 
         # Check that the context was included in the messages sent.
         call_args = planner._client.chat.completions.create.call_args
-        messages = call_args.kwargs.get("messages") or call_args.args[0] if call_args.args else []
+        messages = call_args.kwargs.get("messages")
+        if messages is None and call_args.args:
+            messages = call_args.args[0]
+        if messages is None:
+            messages = []
         message_contents = [m.get("content", "") for m in (messages or [])]
         assert any("IDS alert" in c for c in message_contents)
 
