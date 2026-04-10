@@ -237,6 +237,12 @@ Top-level commands:
 python3 main.py --help
 ```
 
+Global option available on every command:
+
+```bash
+python3 main.py --config config.yaml <command> ...
+```
+
 Available subcommands:
 
 - `scan`     Parse an Nmap XML file and optionally save the graph as a pickle.
@@ -245,6 +251,263 @@ Available subcommands:
 - `evaluate` Run all planners repeatedly and generate comparison artifacts.
 - `train-rl` Train the Q-learning agent and save a Q-table.
 - `dashboard` Regenerate the HTML dashboard from saved report data.
+
+### Full command reference
+
+#### `scan`
+
+Build an attack graph from an Nmap XML file.
+
+```bash
+python3 main.py scan \
+  --nmap-xml <scan.xml> \
+  --save <graph.pkl>
+```
+
+Options:
+
+- `--nmap-xml NMAP_XML` Required path to the Nmap XML file.
+- `--save SAVE` Optional output pickle path for the graph. Default: `graph.pkl`.
+
+Feature-maximizing example:
+
+```bash
+python3 main.py --config config.yaml scan \
+  --nmap-xml tests/fixtures/scan_fixture.xml \
+  --save results/lab_graph.pkl
+```
+
+#### `plan`
+
+Run one planner against a saved graph and optionally persist the chosen path.
+
+```bash
+python3 main.py plan \
+  --graph <graph.pkl> \
+  --planner <astar|detection|llm|rl> \
+  --start <attacker-ip> \
+  --goal <goal-ip> \
+  --select <fastest|stealthiest|balanced> \
+  --save-path <path.json>
+```
+
+Options:
+
+- `--graph GRAPH` Required path to the graph pickle.
+- `--planner PLANNER` Planner to use: `astar`, `detection`, `llm`, or `rl`.
+- `--start START` Optional attacker start IP override.
+- `--goal GOAL` Optional goal host IP override.
+- `--select SELECT` Only meaningful with `detection`; choose `fastest`, `stealthiest`, or `balanced`.
+- `--save-path SAVE_PATH` Optional JSON file to save the selected path.
+
+Feature-maximizing examples:
+
+```bash
+python3 main.py --config config.yaml plan \
+  --graph results/lab_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --select balanced \
+  --save-path results/detection_balanced_path.json
+```
+
+```bash
+python3 main.py --config config.yaml plan \
+  --graph results/lab_graph.pkl \
+  --planner llm \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/llm_path.json
+```
+
+```bash
+python3 main.py --config config.yaml plan \
+  --graph results/lab_graph.pkl \
+  --planner rl \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/rl_path.json
+```
+
+#### `execute`
+
+Generate a playbook and execute the chosen planner path.
+
+```bash
+python3 main.py execute \
+  --graph <graph.pkl> \
+  --planner <astar|detection|llm|rl> \
+  --start <attacker-ip> \
+  --goal <goal-ip> \
+  --yes
+```
+
+Options:
+
+- `--graph GRAPH` Required path to the graph pickle.
+- `--planner PLANNER` Planner used to generate the path before execution.
+- `--start START` Optional attacker start IP override.
+- `--goal GOAL` Optional goal host IP override.
+- `--yes`, `-y` Skip the interactive execution confirmation prompt.
+
+Feature-maximizing example:
+
+```bash
+python3 main.py --config config.yaml execute \
+  --graph results/lab_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --yes
+```
+
+#### `evaluate`
+
+Run the available planners repeatedly and generate comparison artifacts.
+
+```bash
+python3 main.py evaluate \
+  --graph <graph.pkl> \
+  --runs <n> \
+  --output <results-dir>
+```
+
+Options:
+
+- `--graph GRAPH` Required graph pickle.
+- `--runs RUNS` Number of runs per planner.
+- `--output OUTPUT` Output directory for reports and dashboards.
+
+Feature-maximizing example:
+
+```bash
+python3 main.py --config config.yaml evaluate \
+  --graph results/lab_graph.pkl \
+  --runs 20 \
+  --output results/full_eval
+```
+
+#### `train-rl`
+
+Train the RL planner’s Q-table on the current attack graph.
+
+```bash
+python3 main.py train-rl \
+  --graph <graph.pkl> \
+  --episodes <episodes> \
+  --output <qtable.pkl>
+```
+
+Options:
+
+- `--graph GRAPH` Required graph pickle.
+- `--episodes EPISODES` Number of RL episodes to train.
+- `--output OUTPUT` Path to save the learned Q-table.
+
+Feature-maximizing example:
+
+```bash
+python3 main.py --config config.yaml train-rl \
+  --graph results/lab_graph.pkl \
+  --episodes 5000 \
+  --output results/models/qtable.pkl
+```
+
+#### `dashboard`
+
+Generate or regenerate the HTML dashboard from saved report data.
+
+```bash
+python3 main.py dashboard --output <results-dir>
+```
+
+Options:
+
+- `--output OUTPUT` Directory containing `report.json` and destination `dashboard.html`.
+
+Feature-maximizing example:
+
+```bash
+python3 main.py --config config.yaml dashboard --output results/full_eval
+```
+
+### High-value command sequences
+
+#### Full local research loop
+
+```bash
+python3 main.py --config config.yaml scan \
+  --nmap-xml tests/fixtures/scan_fixture.xml \
+  --save results/lab_graph.pkl
+
+python3 main.py --config config.yaml train-rl \
+  --graph results/lab_graph.pkl \
+  --episodes 5000 \
+  --output results/models/qtable.pkl
+
+python3 main.py --config config.yaml plan \
+  --graph results/lab_graph.pkl \
+  --planner astar \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/astar_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/lab_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --select stealthiest \
+  --save-path results/detection_stealthiest_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/lab_graph.pkl \
+  --planner llm \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/llm_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/lab_graph.pkl \
+  --planner rl \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/rl_path.json
+
+python3 main.py --config config.yaml execute \
+  --graph results/lab_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --yes
+
+python3 main.py --config config.yaml evaluate \
+  --graph results/lab_graph.pkl \
+  --runs 20 \
+  --output results/full_eval
+
+python3 main.py --config config.yaml dashboard --output results/full_eval
+```
+
+#### Minimal fast demo
+
+```bash
+python3 main.py scan \
+  --nmap-xml tests/fixtures/scan_fixture.xml \
+  --save graph.pkl
+
+python3 main.py plan \
+  --graph graph.pkl \
+  --planner detection \
+  --select balanced \
+  --save-path results/path.json
+
+python3 main.py evaluate \
+  --graph graph.pkl \
+  --runs 5 \
+  --output results/demo
+```
 
 ## End-to-End Demo
 
