@@ -35,6 +35,13 @@ results/
 *.dot
 *.png
 
+# Allow the checked-in benchmark showcase bundle used by README
+!examples/complex_benchmark/**/*.html
+!examples/complex_benchmark/**/*.dot
+!examples/complex_benchmark/**/*.png
+!examples/complex_benchmark/**/*.pkl
+!examples/complex_benchmark/**/*.jsonl
+
 # Secrets & credentials — NEVER commit these
 .env
 *.env

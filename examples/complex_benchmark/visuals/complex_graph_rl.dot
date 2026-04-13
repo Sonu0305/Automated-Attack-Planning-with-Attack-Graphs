@@ -1,0 +1,26 @@
+digraph attack_graph {
+    rankdir=LR;
+    node [shape=box, style=filled, fontname="Courier"];
+    edge [fontname="Courier", fontsize=9];
+
+    "192.168.56.10" [label="192.168.56.10\nattacker\n[attacker]", fillcolor="#4CAF50", fontcolor="white"];
+    "192.168.56.20" [label="192.168.56.20\nweb-pivot\n[webserver]", fillcolor="#2196F3", fontcolor="white"];
+    "192.168.56.30" [label="192.168.56.30\ndomain-goal\n[domain_controller]\n[GOAL]", fillcolor="#F44336", fontcolor="white"];
+    "192.168.56.40" [label="192.168.56.40\ndb-pivot\n[database]", fillcolor="#2196F3", fontcolor="white"];
+    "192.168.56.50" [label="192.168.56.50\nstealth-hop\n[jump_host]", fillcolor="#2196F3", fontcolor="white"];
+    "192.168.56.60" [label="192.168.56.60\nnoisy-hop\n[jump_host]", fillcolor="#2196F3", fontcolor="white"];
+    "192.168.56.70" [label="192.168.56.70\nlegacy-samba\n[fileserver]", fillcolor="#2196F3", fontcolor="white"];
+
+    "192.168.56.10" -> "192.168.56.30" [label="CVE-2019-0708\nCVSS: 9.8", color="#F44336", penwidth=3, style=bold];
+    "192.168.56.10" -> "192.168.56.20" [label="CVE-2021-41773\nCVSS: 8.8", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.10" -> "192.168.56.40" [label="CVE-2021-27928\nCVSS: 7.8", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.10" -> "192.168.56.60" [label="CVE-2018-10933\nCVSS: 9.0", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.20" -> "192.168.56.30" [label="CVE-2017-0144\nCVSS: 8.6", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.20" -> "192.168.56.70" [label="CVE-2003-0201\nCVSS: 7.5", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.40" -> "192.168.56.50" [label="CVE-2018-10933\nCVSS: 8.0", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.40" -> "192.168.56.70" [label="CVE-2003-0201\nCVSS: 7.4", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.50" -> "192.168.56.30" [label="CVE-2017-0144\nCVSS: 8.3", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.60" -> "192.168.56.30" [label="CVE-2017-0144\nCVSS: 9.1", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.70" -> "192.168.56.20" [label="CVE-2018-10933\nCVSS: 7.0", color="#F44336", penwidth=1, style=solid];
+    "192.168.56.70" -> "192.168.56.30" [label="CVE-2017-0144\nCVSS: 8.2", color="#F44336", penwidth=1, style=solid];
+}
