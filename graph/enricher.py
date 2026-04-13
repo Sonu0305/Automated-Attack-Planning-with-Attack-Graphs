@@ -37,6 +37,28 @@ EXPLOIT_MAP: dict[str, str] = {
     "CVE-2021-27928": "exploit/linux/mysql/mysql_yassl_hello",
 }
 
+# Local fingerprints for the bundled demo lab and test fixtures. These
+# keep the CLI runnable even when the public NVD API is slow, rate-limited,
+# or unavailable in a Windows/WSL-only environment.
+_LOCAL_CVE_FINGERPRINTS: dict[str, list[tuple[str, tuple[str, ...], float]]] = {
+    "ssh": [
+        ("CVE-2018-10933", ("openssh 7.4", "openssh_7.4"), 9.8),
+    ],
+    "http": [
+        ("CVE-2021-41773", ("apache/2.4.49", "apache httpd 2.4.49"), 9.8),
+    ],
+    "smb": [
+        ("CVE-2003-0201", ("samba smbd 4.15.0",), 7.5),
+        ("CVE-2017-0144", ("microsoft windows smbv1", "smbv1"), 9.3),
+    ],
+    "rdp": [
+        ("CVE-2019-0708", ("microsoft terminal services rdp 8.0", "rdp_8.0", "rdp 8.0"), 9.8),
+    ],
+    "mysql": [
+        ("CVE-2021-27928", ("mysql 5.7.32", "mysql_5.7.32"), 8.1),
+    ],
+}
+
 
 class CVEEnricher:
     """Enriches service/version pairs with CVE data from the NVD API.
@@ -87,6 +109,17 @@ class CVEEnricher:
         if cached is not None:
             logger.debug("CVE cache hit for %s %s (%d entries)", service, version, len(cached))
             return cached
+
+        local_results = self._lookup_local_fingerprint(service, version)
+        if local_results:
+            logger.info(
+                "Using bundled local CVE fingerprints for %s %s (%d entries)",
+                service,
+                version,
+                len(local_results),
+            )
+            self._store_cache(service, version, local_results)
+            return local_results
 
         results = self._fetch_nvd(service, version)
         self._store_cache(service, version, results)
@@ -272,6 +305,23 @@ class CVEEnricher:
             if cve_id and score > 0.0:
                 results.append((cve_id, score))
         return results
+
+    def _lookup_local_fingerprint(
+        self,
+        service: str,
+        version: str,
+    ) -> list[tuple[str, float]]:
+        """Return bundled CVEs for known lab/test service fingerprints."""
+        service_key = service.lower().strip()
+        version_key = version.lower().replace("_", " ").strip()
+        fingerprints = _LOCAL_CVE_FINGERPRINTS.get(service_key, [])
+
+        matches: list[tuple[str, float]] = []
+        for cve_id, patterns, score in fingerprints:
+            if any(pattern in version_key for pattern in patterns):
+                matches.append((cve_id, score))
+
+        return matches
 
     @staticmethod
     def _extract_score(metrics: dict) -> float:

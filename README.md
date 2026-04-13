@@ -215,6 +215,7 @@ No Linux-only host setup is required for the command surface itself. The repo su
 
 - Groq-backed LLM planning when `GROQ_API_KEY` is configured
 - Offline local fallback for the `llm` planner when Groq is not configured
+- Bundled local CVE fingerprints for the included lab and fixture services when NVD is unavailable or rate-limited
 - Relative output paths and auto-created output directories
 - Auto-resolved IDS log path defaults for Windows and WSL-friendly local setups
 
