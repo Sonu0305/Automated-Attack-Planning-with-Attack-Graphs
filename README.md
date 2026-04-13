@@ -31,6 +31,201 @@ The current codebase implements:
 
 This repository is best understood as a modular research prototype and experimentation platform, not a turnkey offensive security product.
 
+## Complex Benchmark Showcase
+
+The repository includes a committed complex benchmark bundle in [`examples/complex_benchmark/`](examples/complex_benchmark/) so the README shows a real multi-planner run instead of only toy commands.
+
+Scenario highlights:
+
+- Start host: `192.168.56.10`
+- Goal host: `192.168.56.30`
+- Topology size: `7` hosts and `12` exploit edges
+- Deliberate tradeoff: one direct but noisy BlueKeep route, one balanced 2-step pivot route, and one longer stealth-first route
+
+Committed benchmark artifacts:
+
+- Paths: [`astar`](examples/complex_benchmark/paths/astar_path.json), [`detection_combined`](examples/complex_benchmark/paths/detection_combined_path.json), [`detection_fastest`](examples/complex_benchmark/paths/detection_fastest_path.json), [`detection_balanced`](examples/complex_benchmark/paths/detection_balanced_path.json), [`detection_stealthiest`](examples/complex_benchmark/paths/detection_stealthiest_path.json), [`rl`](examples/complex_benchmark/paths/rl_path.json), [`llm`](examples/complex_benchmark/paths/llm_path.json)
+- Reports: [`complex_graph.pkl`](examples/complex_benchmark/complex_graph.pkl), [`path_summary.json`](examples/complex_benchmark/path_summary.json), [`report.md`](examples/complex_benchmark/report.md), [`report.json`](examples/complex_benchmark/report.json), [`dashboard.html`](examples/complex_benchmark/dashboard.html)
+- Playbooks: [`astar`](examples/complex_benchmark/playbooks/astar_playbook.yaml), [`detection`](examples/complex_benchmark/playbooks/detection_playbook.yaml), [`rl`](examples/complex_benchmark/playbooks/rl_playbook.yaml), [`llm`](examples/complex_benchmark/playbooks/llm_playbook.yaml)
+
+### Exact WSL command sequence used for the benchmark
+
+```bash
+source .venv/bin/activate
+
+python3 main.py --config config.yaml train-rl \
+  --graph results/complex/complex_graph.pkl \
+  --episodes 2000 \
+  --output qtable.pkl
+
+python3 main.py --config config.yaml plan \
+  --graph results/complex/complex_graph.pkl \
+  --planner astar \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/complex/astar_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/complex/complex_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --select fastest \
+  --save-path results/complex/detection_fastest_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/complex/complex_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --select stealthiest \
+  --save-path results/complex/detection_stealthiest_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/complex/complex_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --select balanced \
+  --save-path results/complex/detection_balanced_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/complex/complex_graph.pkl \
+  --planner rl \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/complex/rl_path.json
+
+python3 main.py --config config.yaml plan \
+  --graph results/complex/complex_graph.pkl \
+  --planner llm \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --save-path results/complex/llm_path.json
+
+python3 main.py --config config.yaml execute \
+  --graph results/complex/complex_graph.pkl \
+  --planner astar \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --yes
+
+python3 main.py --config config.yaml execute \
+  --graph results/complex/complex_graph.pkl \
+  --planner detection \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --yes
+
+python3 main.py --config config.yaml execute \
+  --graph results/complex/complex_graph.pkl \
+  --planner rl \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --yes
+
+python3 main.py --config config.yaml execute \
+  --graph results/complex/complex_graph.pkl \
+  --planner llm \
+  --start 192.168.56.10 \
+  --goal 192.168.56.30 \
+  --yes
+
+python3 main.py --config config.yaml evaluate \
+  --graph results/complex/complex_graph.pkl \
+  --runs 4 \
+  --output results/complex_eval
+
+python3 main.py --config config.yaml dashboard \
+  --output results/complex_eval
+```
+
+### Benchmark result summary
+
+| Planner or view | Steps | Exploit cost | Detection cost | Route chosen |
+|---|---:|---:|---:|---|
+| `astar` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
+| `detection` default (`execute` / `evaluate`) | 2 | 2.6 | 0.40 | `10 -> 20 -> 30` via `CVE-2021-41773`, `CVE-2017-0144` |
+| `detection --select fastest` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
+| `detection --select balanced` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
+| `detection --select stealthiest` | 3 | 5.9 | 0.18 | `10 -> 40 -> 50 -> 30` via `CVE-2021-27928`, `CVE-2018-10933`, `CVE-2017-0144` |
+| `rl` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
+| `llm` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
+
+The key behavioral difference is that the standard detection-aware planner used by `execute` and `evaluate` prefers the quieter 2-step web-to-SMB pivot, while the Pareto `stealthiest` view pushes even further toward low-detection edges and accepts a 3-step route.
+
+### Execution and evaluation snapshot
+
+| Planner | Success rate | Avg steps | Avg IDS alerts | Avg duration |
+|---|---:|---:|---:|---:|
+| `astar` | 100.0% | 1.0 | 0.0 | 4.5s |
+| `detection` | 100.0% | 2.0 | 0.0 | 9.3s |
+| `llm` | 100.0% | 1.0 | 0.0 | 5.2s |
+| `rl` | 100.0% | 1.0 | 0.0 | 5.1s |
+
+Representative execution outcomes:
+
+- `astar` generated a 1-step playbook and reached the goal in about `4.4s`
+- `detection` generated a 2-step pivot playbook and reached the goal in about `11.4s`
+- `rl` generated a 1-step playbook and reached the goal in about `4.4s`
+- `llm` generated a 1-step playbook and reached the goal in about `5.2s`
+
+<details>
+<summary>Representative terminal excerpts from the complex run</summary>
+
+```text
+$ python3 main.py --config config.yaml train-rl --graph results/complex/complex_graph.pkl --episodes 2000 --output qtable.pkl
+Episode 500/2000: avg reward=4.2 epsilon=0.779 success=100%
+Episode 1000/2000: avg reward=4.5 epsilon=0.606 success=100%
+Episode 1500/2000: avg reward=5.1 epsilon=0.472 success=100%
+Episode 2000/2000: avg reward=5.4 epsilon=0.368 success=100%
+Saved Q-table to qtable.pkl
+
+$ python3 main.py --config config.yaml plan --graph results/complex/complex_graph.pkl --planner detection --select stealthiest --save-path results/complex/detection_stealthiest_path.json
+Pareto paths:
+  FASTEST: attacker -> domain-goal via CVE-2019-0708
+  STEALTHIEST: attacker -> db-pivot -> stealth-hop -> domain-goal
+  BALANCED: attacker -> domain-goal via CVE-2019-0708
+Saved path to results/complex/detection_stealthiest_path.json
+
+$ python3 main.py --config config.yaml execute --graph results/complex/complex_graph.pkl --planner detection --start 192.168.56.10 --goal 192.168.56.30 --yes
+Generated playbook: results/playbook_20260413_134637.yaml
+Step 1/2: 192.168.56.10 -> 192.168.56.20 via CVE-2021-41773 (7.2s)
+Step 2/2: 192.168.56.20 -> 192.168.56.30 via CVE-2017-0144 (4.3s)
+Execution completed successfully in 11.4s
+
+$ python3 main.py --config config.yaml evaluate --graph results/complex/complex_graph.pkl --runs 4 --output results/complex_eval
+Planner      Success   Avg Steps   Avg Alerts   Avg Duration
+astar        100.0%    1.0         0.0          4.5s
+detection    100.0%    2.0         0.0          9.3s
+llm          100.0%    1.0         0.0          5.2s
+rl           100.0%    1.0         0.0          5.1s
+```
+
+</details>
+
+### Benchmark visuals
+
+<table>
+  <tr>
+    <td align="center"><strong>Full complex graph</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_full.png" alt="Full complex graph" width="420"></td>
+    <td align="center"><strong>A* path highlight</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_astar.png" alt="A* path highlight" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Detection combined-cost route</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_detection_combined.png" alt="Detection combined-cost route" width="420"></td>
+    <td align="center"><strong>Detection stealthiest route</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_detection_stealthiest.png" alt="Detection stealthiest route" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>RL path highlight</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_rl.png" alt="RL path highlight" width="420"></td>
+    <td align="center"><strong>LLM path highlight</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_llm.png" alt="LLM path highlight" width="420"></td>
+  </tr>
+</table>
+
+Graph source files:
+
+- DOT exports: [`full`](examples/complex_benchmark/visuals/complex_graph_full.dot), [`astar`](examples/complex_benchmark/visuals/complex_graph_astar.dot), [`detection_combined`](examples/complex_benchmark/visuals/complex_graph_detection_combined.dot), [`detection_stealthiest`](examples/complex_benchmark/visuals/complex_graph_detection_stealthiest.dot), [`rl`](examples/complex_benchmark/visuals/complex_graph_rl.dot), [`llm`](examples/complex_benchmark/visuals/complex_graph_llm.dot)
+- Interactive evaluation bundle: [`dashboard.html`](examples/complex_benchmark/dashboard.html) plus [`report.md`](examples/complex_benchmark/report.md) (`dashboard.html` is meant to be downloaded or opened locally, since GitHub previews HTML source instead of executing it)
+
 ## System Flow
 
 ```mermaid
@@ -557,201 +752,6 @@ Windows PowerShell usage:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\demo_windows.ps1
 ```
-
-## Complex Benchmark Showcase
-
-The repository now includes a committed complex benchmark bundle in [`examples/complex_benchmark/`](examples/complex_benchmark/) so the README can show a real multi-planner run instead of only toy commands.
-
-Scenario highlights:
-
-- Start host: `192.168.56.10`
-- Goal host: `192.168.56.30`
-- Topology size: `7` hosts and `12` exploit edges
-- Deliberate tradeoff: one direct but noisy BlueKeep route, one balanced 2-step pivot route, and one longer stealth-first route
-
-Committed benchmark artifacts:
-
-- Paths: [`astar`](examples/complex_benchmark/paths/astar_path.json), [`detection_combined`](examples/complex_benchmark/paths/detection_combined_path.json), [`detection_fastest`](examples/complex_benchmark/paths/detection_fastest_path.json), [`detection_balanced`](examples/complex_benchmark/paths/detection_balanced_path.json), [`detection_stealthiest`](examples/complex_benchmark/paths/detection_stealthiest_path.json), [`rl`](examples/complex_benchmark/paths/rl_path.json), [`llm`](examples/complex_benchmark/paths/llm_path.json)
-- Reports: [`complex_graph.pkl`](examples/complex_benchmark/complex_graph.pkl), [`path_summary.json`](examples/complex_benchmark/path_summary.json), [`report.md`](examples/complex_benchmark/report.md), [`report.json`](examples/complex_benchmark/report.json), [`dashboard.html`](examples/complex_benchmark/dashboard.html)
-- Playbooks: [`astar`](examples/complex_benchmark/playbooks/astar_playbook.yaml), [`detection`](examples/complex_benchmark/playbooks/detection_playbook.yaml), [`rl`](examples/complex_benchmark/playbooks/rl_playbook.yaml), [`llm`](examples/complex_benchmark/playbooks/llm_playbook.yaml)
-
-### Exact WSL command sequence used for the benchmark
-
-```bash
-source .venv/bin/activate
-
-python3 main.py --config config.yaml train-rl \
-  --graph results/complex/complex_graph.pkl \
-  --episodes 2000 \
-  --output qtable.pkl
-
-python3 main.py --config config.yaml plan \
-  --graph results/complex/complex_graph.pkl \
-  --planner astar \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --save-path results/complex/astar_path.json
-
-python3 main.py --config config.yaml plan \
-  --graph results/complex/complex_graph.pkl \
-  --planner detection \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --select fastest \
-  --save-path results/complex/detection_fastest_path.json
-
-python3 main.py --config config.yaml plan \
-  --graph results/complex/complex_graph.pkl \
-  --planner detection \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --select stealthiest \
-  --save-path results/complex/detection_stealthiest_path.json
-
-python3 main.py --config config.yaml plan \
-  --graph results/complex/complex_graph.pkl \
-  --planner detection \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --select balanced \
-  --save-path results/complex/detection_balanced_path.json
-
-python3 main.py --config config.yaml plan \
-  --graph results/complex/complex_graph.pkl \
-  --planner rl \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --save-path results/complex/rl_path.json
-
-python3 main.py --config config.yaml plan \
-  --graph results/complex/complex_graph.pkl \
-  --planner llm \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --save-path results/complex/llm_path.json
-
-python3 main.py --config config.yaml execute \
-  --graph results/complex/complex_graph.pkl \
-  --planner astar \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --yes
-
-python3 main.py --config config.yaml execute \
-  --graph results/complex/complex_graph.pkl \
-  --planner detection \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --yes
-
-python3 main.py --config config.yaml execute \
-  --graph results/complex/complex_graph.pkl \
-  --planner rl \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --yes
-
-python3 main.py --config config.yaml execute \
-  --graph results/complex/complex_graph.pkl \
-  --planner llm \
-  --start 192.168.56.10 \
-  --goal 192.168.56.30 \
-  --yes
-
-python3 main.py --config config.yaml evaluate \
-  --graph results/complex/complex_graph.pkl \
-  --runs 4 \
-  --output results/complex_eval
-
-python3 main.py --config config.yaml dashboard \
-  --output results/complex_eval
-```
-
-### Benchmark result summary
-
-| Planner or view | Steps | Exploit cost | Detection cost | Route chosen |
-|---|---:|---:|---:|---|
-| `astar` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
-| `detection` default (`execute` / `evaluate`) | 2 | 2.6 | 0.40 | `10 -> 20 -> 30` via `CVE-2021-41773`, `CVE-2017-0144` |
-| `detection --select fastest` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
-| `detection --select balanced` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
-| `detection --select stealthiest` | 3 | 5.9 | 0.18 | `10 -> 40 -> 50 -> 30` via `CVE-2021-27928`, `CVE-2018-10933`, `CVE-2017-0144` |
-| `rl` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
-| `llm` | 1 | 0.2 | 0.95 | `10 -> 30` via `CVE-2019-0708` |
-
-The key behavioral difference is that the standard detection-aware planner used by `execute` and `evaluate` prefers the quieter 2-step web-to-SMB pivot, while the Pareto `stealthiest` view pushes even further toward low-detection edges and accepts a 3-step route.
-
-### Execution and evaluation snapshot
-
-| Planner | Success rate | Avg steps | Avg IDS alerts | Avg duration |
-|---|---:|---:|---:|---:|
-| `astar` | 100.0% | 1.0 | 0.0 | 4.5s |
-| `detection` | 100.0% | 2.0 | 0.0 | 9.3s |
-| `llm` | 100.0% | 1.0 | 0.0 | 5.2s |
-| `rl` | 100.0% | 1.0 | 0.0 | 5.1s |
-
-Representative execution outcomes:
-
-- `astar` generated a 1-step playbook and reached the goal in about `4.4s`
-- `detection` generated a 2-step pivot playbook and reached the goal in about `11.4s`
-- `rl` generated a 1-step playbook and reached the goal in about `4.4s`
-- `llm` generated a 1-step playbook and reached the goal in about `5.2s`
-
-<details>
-<summary>Representative terminal excerpts from the complex run</summary>
-
-```text
-$ python3 main.py --config config.yaml train-rl --graph results/complex/complex_graph.pkl --episodes 2000 --output qtable.pkl
-Episode 500/2000: avg reward=4.2 epsilon=0.779 success=100%
-Episode 1000/2000: avg reward=4.5 epsilon=0.606 success=100%
-Episode 1500/2000: avg reward=5.1 epsilon=0.472 success=100%
-Episode 2000/2000: avg reward=5.4 epsilon=0.368 success=100%
-Saved Q-table to qtable.pkl
-
-$ python3 main.py --config config.yaml plan --graph results/complex/complex_graph.pkl --planner detection --select stealthiest --save-path results/complex/detection_stealthiest_path.json
-Pareto paths:
-  FASTEST: attacker -> domain-goal via CVE-2019-0708
-  STEALTHIEST: attacker -> db-pivot -> stealth-hop -> domain-goal
-  BALANCED: attacker -> domain-goal via CVE-2019-0708
-Saved path to results/complex/detection_stealthiest_path.json
-
-$ python3 main.py --config config.yaml execute --graph results/complex/complex_graph.pkl --planner detection --start 192.168.56.10 --goal 192.168.56.30 --yes
-Generated playbook: results/playbook_20260413_134637.yaml
-Step 1/2: 192.168.56.10 -> 192.168.56.20 via CVE-2021-41773 (7.2s)
-Step 2/2: 192.168.56.20 -> 192.168.56.30 via CVE-2017-0144 (4.3s)
-Execution completed successfully in 11.4s
-
-$ python3 main.py --config config.yaml evaluate --graph results/complex/complex_graph.pkl --runs 4 --output results/complex_eval
-Planner      Success   Avg Steps   Avg Alerts   Avg Duration
-astar        100.0%    1.0         0.0          4.5s
-detection    100.0%    2.0         0.0          9.3s
-llm          100.0%    1.0         0.0          5.2s
-rl           100.0%    1.0         0.0          5.1s
-```
-
-</details>
-
-### Benchmark visuals
-
-<table>
-  <tr>
-    <td align="center"><strong>Full complex graph</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_full.png" alt="Full complex graph" width="420"></td>
-    <td align="center"><strong>A* path highlight</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_astar.png" alt="A* path highlight" width="420"></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Detection combined-cost route</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_detection_combined.png" alt="Detection combined-cost route" width="420"></td>
-    <td align="center"><strong>Detection stealthiest route</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_detection_stealthiest.png" alt="Detection stealthiest route" width="420"></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>RL path highlight</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_rl.png" alt="RL path highlight" width="420"></td>
-    <td align="center"><strong>LLM path highlight</strong><br><img src="examples/complex_benchmark/visuals/complex_graph_llm.png" alt="LLM path highlight" width="420"></td>
-  </tr>
-</table>
-
-Graph source files:
-
-- DOT exports: [`full`](examples/complex_benchmark/visuals/complex_graph_full.dot), [`astar`](examples/complex_benchmark/visuals/complex_graph_astar.dot), [`detection_combined`](examples/complex_benchmark/visuals/complex_graph_detection_combined.dot), [`detection_stealthiest`](examples/complex_benchmark/visuals/complex_graph_detection_stealthiest.dot), [`rl`](examples/complex_benchmark/visuals/complex_graph_rl.dot), [`llm`](examples/complex_benchmark/visuals/complex_graph_llm.dot)
-- Interactive evaluation bundle: [`dashboard.html`](examples/complex_benchmark/dashboard.html) plus [`report.md`](examples/complex_benchmark/report.md) (`dashboard.html` is meant to be downloaded or opened locally, since GitHub previews HTML source instead of executing it)
 
 ## Lab Provisioning
 
