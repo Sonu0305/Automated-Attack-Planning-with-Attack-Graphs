@@ -485,6 +485,9 @@ def _assemble_html(plotly_divs: list[str]) -> str:
       .grid-2 {{ grid-template-columns: 1fr; }}
     }}
   </style>
+  <script>
+{plotly_js}
+  </script>
 </head>
 <body>
   <h1>&#9889; AutoAttack Evaluation Dashboard</h1>
@@ -501,10 +504,6 @@ def _assemble_html(plotly_divs: list[str]) -> str:
     <div>{plotly_divs[3]}</div>
     <div>{plotly_divs[4]}</div>
   </div>
-
-  <script>
-{plotly_js}
-  </script>
 </body>
 </html>
 """
@@ -522,6 +521,15 @@ def _get_plotly_js() -> str:
         JavaScript source string to embed in the HTML.
     """
     try:
+        from plotly.offline import get_plotlyjs
+
+        js = get_plotlyjs()
+        logger.debug("Plotly.js loaded from local plotly package (%d bytes).", len(js))
+        return js
+    except Exception:
+        pass
+
+    try:
         import urllib.request
         CDN = "https://cdn.plot.ly/plotly-2.27.0.min.js"
         with urllib.request.urlopen(CDN, timeout=10) as resp:
@@ -530,11 +538,17 @@ def _get_plotly_js() -> str:
             return js
     except Exception:
         logger.warning(
-            "Could not download Plotly.js — dashboard will load it from CDN at runtime."
+            "Could not inline Plotly.js from local package or CDN."
         )
         return (
-            "// Plotly.js could not be inlined. Loading from CDN...\n"
-            "var s=document.createElement('script');\n"
-            "s.src='https://cdn.plot.ly/plotly-2.27.0.min.js';\n"
-            "document.head.appendChild(s);\n"
+            "window.Plotly = window.Plotly || {\n"
+            "  newPlot: function(divId) {\n"
+            "    var el = document.getElementById(divId);\n"
+            "    if (el) {\n"
+            "      el.innerHTML = '<div style=\"padding:24px;color:#f38ba8;\">'"
+            " + 'Plotly.js was not available while generating this dashboard.'"
+            " + '</div>';\n"
+            "    }\n"
+            "  }\n"
+            "};\n"
         )
