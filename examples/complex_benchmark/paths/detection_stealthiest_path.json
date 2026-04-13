@@ -1,0 +1,20 @@
+[
+  {
+    "source": "192.168.56.10",
+    "target": "192.168.56.40",
+    "cve_id": "CVE-2021-27928",
+    "module": "exploit/linux/mysql/mysql_yassl_hello"
+  },
+  {
+    "source": "192.168.56.40",
+    "target": "192.168.56.50",
+    "cve_id": "CVE-2018-10933",
+    "module": "exploit/linux/ssh/libssh_auth_bypass"
+  },
+  {
+    "source": "192.168.56.50",
+    "target": "192.168.56.30",
+    "cve_id": "CVE-2017-0144",
+    "module": "exploit/windows/smb/ms17_010_eternalblue"
+  }
+]

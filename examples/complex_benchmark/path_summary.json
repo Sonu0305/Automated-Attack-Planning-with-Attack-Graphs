@@ -1,0 +1,61 @@
+{
+  "astar": {
+    "steps": 1,
+    "total_exploit_cost": 0.2,
+    "total_detection_cost": 0.95,
+    "route": [
+      "192.168.56.10->192.168.56.30 (CVE-2019-0708)"
+    ]
+  },
+  "detection_combined": {
+    "steps": 2,
+    "total_exploit_cost": 2.6,
+    "total_detection_cost": 0.4,
+    "route": [
+      "192.168.56.10->192.168.56.20 (CVE-2021-41773)",
+      "192.168.56.20->192.168.56.30 (CVE-2017-0144)"
+    ]
+  },
+  "detection_fastest": {
+    "steps": 1,
+    "total_exploit_cost": 0.2,
+    "total_detection_cost": 0.95,
+    "route": [
+      "192.168.56.10->192.168.56.30 (CVE-2019-0708)"
+    ]
+  },
+  "detection_stealthiest": {
+    "steps": 3,
+    "total_exploit_cost": 5.9,
+    "total_detection_cost": 0.18,
+    "route": [
+      "192.168.56.10->192.168.56.40 (CVE-2021-27928)",
+      "192.168.56.40->192.168.56.50 (CVE-2018-10933)",
+      "192.168.56.50->192.168.56.30 (CVE-2017-0144)"
+    ]
+  },
+  "detection_balanced": {
+    "steps": 1,
+    "total_exploit_cost": 0.2,
+    "total_detection_cost": 0.95,
+    "route": [
+      "192.168.56.10->192.168.56.30 (CVE-2019-0708)"
+    ]
+  },
+  "rl": {
+    "steps": 1,
+    "total_exploit_cost": 0.2,
+    "total_detection_cost": 0.95,
+    "route": [
+      "192.168.56.10->192.168.56.30 (CVE-2019-0708)"
+    ]
+  },
+  "llm": {
+    "steps": 1,
+    "total_exploit_cost": 0.2,
+    "total_detection_cost": 0.95,
+    "route": [
+      "192.168.56.10->192.168.56.30 (CVE-2019-0708)"
+    ]
+  }
+}
