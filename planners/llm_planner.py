@@ -92,7 +92,14 @@ class LLMPlanner(BasePlanner):
         self._client = None
 
         if api_key and Groq is not None:
-            self._client = Groq(api_key=api_key)
+            try:
+                self._client = Groq(api_key=api_key)
+            except Exception as exc:
+                self.backend = "offline"
+                logger.warning(
+                    "Groq client initialisation failed (%s). Falling back to offline mode.",
+                    exc,
+                )
         else:
             self.backend = "offline"
             reason = "missing GROQ_API_KEY" if not api_key else "missing groq package"
