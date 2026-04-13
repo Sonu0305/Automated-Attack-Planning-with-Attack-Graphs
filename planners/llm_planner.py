@@ -90,10 +90,21 @@ class LLMPlanner(BasePlanner):
         self.max_retries = max_retries
         self.backend = "groq"
         self._client = None
+        self._http_client = None
 
         if api_key and Groq is not None:
             try:
-                self._client = Groq(api_key=api_key)
+                import httpx
+
+                # Provide an explicit httpx client so we avoid Groq's
+                # internal default-client path that can trip over proxy
+                # compatibility differences across local environments.
+                self._http_client = httpx.Client(
+                    timeout=60.0,
+                    follow_redirects=True,
+                    trust_env=True,
+                )
+                self._client = Groq(api_key=api_key, http_client=self._http_client)
             except Exception as exc:
                 self.backend = "offline"
                 logger.warning(
