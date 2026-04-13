@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import random
+import re
 import time
 from typing import Optional
 
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 _CONNECT_TIMEOUT = 15  # seconds
 _COMMAND_TIMEOUT = 30  # seconds
+_PROMPT_PATTERN = re.compile(r"(^|\n)(?:PS [^\n>]+>|[^ \n>#\$]+[>#\$]|[>#\$])\s*$")
 
 
 class SSHExecutor(BaseExecutor):
@@ -202,7 +204,7 @@ class SSHExecutor(BaseExecutor):
             if channel.recv_ready():
                 chunk = channel.recv(4096).decode(errors="replace")
                 output_parts.append(chunk)
-                if chunk.endswith("$ ") or chunk.endswith("# "):
+                if self._looks_like_prompt("".join(output_parts)):
                     break
             else:
                 time.sleep(0.1)
@@ -241,5 +243,11 @@ class SSHExecutor(BaseExecutor):
         if "sudo" in edge.exploit_module:
             return "sudo -l && sudo /bin/bash -i"
         if service == "ssh":
-            return f"ssh-keyscan {edge.target_host}"
+            # ``whoami`` is available in both Windows and POSIX shells.
+            return "whoami"
         return f"echo 'Executed {edge.cve_id} on {edge.target_host}'"
+
+    @staticmethod
+    def _looks_like_prompt(output: str) -> bool:
+        """Heuristically detect POSIX or PowerShell-style prompts."""
+        return bool(_PROMPT_PATTERN.search(output))

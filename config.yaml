@@ -1,11 +1,17 @@
 # AutoAttack Configuration
 # ─────────────────────────────────────────────────────────────────────────────
 # Secrets are read from environment variables using ${VAR} syntax.
-# Set the following before running:
+# Set the following before running in WSL:
 #   export MSF_RPC_PASSWORD="msfrpc_password"
 #   export GROQ_API_KEY="gsk_..."
 #   export NEO4J_PASSWORD="neo4j"
 #   export NVD_API_KEY="..."   # optional — increases NVD rate limit
+#
+# Or in Windows PowerShell:
+#   $env:MSF_RPC_PASSWORD="msfrpc_password"
+#   $env:GROQ_API_KEY="gsk_..."
+#   $env:NEO4J_PASSWORD="neo4j"
+#   $env:NVD_API_KEY="..."     # optional — increases NVD rate limit
 # ─────────────────────────────────────────────────────────────────────────────
 
 lab:
@@ -68,7 +74,7 @@ neo4j:
 # ─── IDS Monitoring ──────────────────────────────────────────────────────────
 ids:
   type: "snort"                      # "snort" | "suricata"
-  log_path: "/var/log/snort/fast.log"
+  log_path: "auto"                   # Auto-resolves for WSL/Windows, falls back to ./logs/snort/fast.log
   alert_threshold: 3                 # Trigger replan if >= this many alerts per step
 
 # ─── Planner Settings ─────────────────────────────────────────────────────────

@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import os
+import platform
 import pickle
 import sys
 import time
@@ -94,7 +95,7 @@ class Neo4jConfig:
 class IDSConfig:
     """IDS monitoring settings."""
     type: str = "snort"
-    log_path: str = "/var/log/snort/fast.log"
+    log_path: str = "auto"
     alert_threshold: int = 3
 
 
@@ -196,7 +197,7 @@ def load_config(path: str = "config.yaml") -> Config:
         ),
         ids=IDSConfig(
             type=ids_raw.get("type", "snort"),
-            log_path=ids_raw.get("log_path", "/var/log/snort/fast.log"),
+            log_path=_resolve_ids_log_path(ids_raw.get("log_path", "auto")),
             alert_threshold=int(ids_raw.get("alert_threshold", 3)),
         ),
         planner=PlannerConfig(
@@ -252,6 +253,7 @@ def cmd_scan(args: argparse.Namespace, cfg: Config) -> None:
 
         if args.save:
             t3 = progress.add_task("[cyan]Saving graph...", total=None)
+            _ensure_parent_dir(args.save)
             with open(args.save, "wb") as fh:
                 pickle.dump(graph, fh)
             progress.update(t3, completed=1, total=1)
@@ -272,23 +274,25 @@ def cmd_plan(args: argparse.Namespace, cfg: Config) -> None:
         args: Parsed CLI arguments.
         cfg: Loaded configuration.
     """
+    planner_name = args.planner or cfg.planner.default
     graph = _load_graph(args.graph)
-    planner = _make_planner(args.planner or cfg.planner.default, cfg)
+    planner = _make_planner(planner_name, cfg)
     start = args.start or cfg.attacker_ip
     goal = args.goal or cfg.goal
 
-    console.print(f"\n[bold green][*][/] Running planner: [bold]{args.planner or cfg.planner.default}[/]")
+    console.print(f"\n[bold green][*][/] Running planner: [bold]{planner_name}[/]")
 
     with console.status("[cyan]Planning attack path...[/]"):
-        if hasattr(planner, "plan_pareto") and (args.planner == "detection" or cfg.planner.default == "detection"):
+        if hasattr(planner, "plan_pareto") and planner_name == "detection":
             paths = planner.plan_pareto(graph, start, goal)
             _print_pareto_paths(paths, cfg)
             path = paths.get(args.select or "balanced", paths.get("balanced"))
         else:
             path = planner.plan(graph, start, goal)
-            _print_path(path, args.planner or cfg.planner.default)
+            _print_path(path, planner_name)
 
     if args.save_path:
+        _ensure_parent_dir(args.save_path)
         path_data = [
             {
                 "source": e.source_host,
@@ -313,7 +317,8 @@ def cmd_execute(args: argparse.Namespace, cfg: Config) -> None:
     from graph.models import RunResult
 
     graph = _load_graph(args.graph)
-    planner = _make_planner(args.planner or cfg.planner.default, cfg)
+    planner_name = args.planner or cfg.planner.default
+    planner = _make_planner(planner_name, cfg)
     start = args.start or cfg.attacker_ip
     goal = args.goal or cfg.goal
 
@@ -321,7 +326,7 @@ def cmd_execute(args: argparse.Namespace, cfg: Config) -> None:
 
     runner = PlaybookRunner(log_dir=cfg.evaluation.output_dir)
     playbook_path = runner.generate_playbook(
-        path, {"attacker_ip": cfg.attacker_ip}, args.planner or cfg.planner.default
+        path, {"attacker_ip": cfg.attacker_ip}, planner_name
     )
     console.print(f"\n[green][*][/] Generating playbook... → [bold]{playbook_path}[/]")
 
@@ -332,7 +337,16 @@ def cmd_execute(args: argparse.Namespace, cfg: Config) -> None:
             return
 
     console.print("[green][*][/] Starting execution with PlaybookRunner...\n")
-    results = _execute_with_progress(runner, path, graph, goal)
+    results = runner.run(path, graph, goal)
+
+    for i, (edge, result) in enumerate(zip(path, results), start=1):
+        icon = "[bold green]✓ SUCCESS[/]" if result.success else "[bold red]✗ FAILED[/]"
+        preview = result.output.splitlines()[0][:60] if result.output else ""
+        console.print(
+            f"    Step {i}/{len(path)} {icon}  "
+            f"{edge.source_host} → {edge.target_host} via {edge.cve_id}  "
+            f"({result.duration_seconds:.1f}s)  — {preview}"
+        )
 
     # Summarise.
     successes = sum(1 for r in results if r.success)
@@ -536,7 +550,7 @@ def _load_graph(graph_path: Optional[str]) -> object:
     if not graph_path or not Path(graph_path).exists():
         console.print(
             f"[bold red]Error:[/] Graph file not found: {graph_path}\n"
-            "Run: [bold]python main.py scan --nmap-xml scan.xml --save graph.pkl[/]"
+            f"Run: [bold]{_python_command_hint()} main.py scan --nmap-xml scan.xml --save graph.pkl[/]"
         )
         sys.exit(1)
     with open(graph_path, "rb") as fh:
@@ -567,8 +581,6 @@ def _make_planner(name: str, cfg: Config) -> object:
 
     if name == "llm":
         from planners.llm_planner import LLMPlanner
-        if not cfg.groq.api_key:
-            raise ValueError("Groq API key not set. Export GROQ_API_KEY.")
         return LLMPlanner(api_key=cfg.groq.api_key, model=cfg.groq.model, max_retries=cfg.groq.max_retries)
 
     if name == "rl":
@@ -665,6 +677,57 @@ def _execute_with_progress(
         if not result.success:
             console.print("    [bold yellow]⚠  Checking replan trigger...[/]")
     return results
+
+
+def _ensure_parent_dir(path_str: str) -> None:
+    """Create the parent directory for an output path if needed."""
+    parent = Path(path_str).expanduser().resolve().parent
+    parent.mkdir(parents=True, exist_ok=True)
+
+
+def _python_command_hint() -> str:
+    """Return the most likely Python launcher for the current platform."""
+    return "py -3" if os.name == "nt" else "python3"
+
+
+def _is_wsl() -> bool:
+    """Detect whether the current process is running inside WSL."""
+    release = platform.release().lower()
+    return "microsoft" in release or "wsl" in release
+
+
+def _resolve_ids_log_path(configured_path: str) -> str:
+    """Resolve the IDS log path for Windows or WSL/local demo environments.
+
+    If ``configured_path`` is ``"auto"`` or empty, choose the first
+    existing candidate for the current platform and otherwise fall back
+    to a repo-local path that is safe on both Windows and WSL.
+    """
+    if configured_path and configured_path.lower() != "auto":
+        return configured_path
+
+    repo_default = Path("logs") / "snort" / "fast.log"
+
+    candidates = [repo_default]
+    if os.name == "nt":
+        candidates = [
+            Path("C:/Snort/log/alert_fast.txt"),
+            Path("C:/Program Files/Snort/log/alert_fast.txt"),
+            repo_default,
+        ]
+    elif _is_wsl():
+        candidates = [
+            Path("/var/log/snort/fast.log"),
+            repo_default,
+        ]
+    else:
+        candidates = [repo_default]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+
+    return str(repo_default)
 
 
 def _generate_demo_results() -> dict:

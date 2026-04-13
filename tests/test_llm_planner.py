@@ -231,3 +231,18 @@ class TestLLMPlanner:
         assert any("IDS alert" in c for c in message_contents)
 
         assert len(path) == 1
+
+    @patch("planners.llm_planner.Groq", None)
+    def test_offline_fallback_runs_without_groq_or_api_key(self):
+        """LLMPlanner must still produce a valid path in offline fallback mode."""
+        from planners.llm_planner import LLMPlanner
+
+        planner = LLMPlanner(api_key="")
+        G = build_test_graph()
+
+        path = planner.plan(G, self.START, self.GOAL)
+
+        assert planner.backend == "offline"
+        assert len(path) == 1
+        assert path[0].source_host == self.START
+        assert path[0].target_host == self.GOAL

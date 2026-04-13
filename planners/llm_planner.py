@@ -3,7 +3,9 @@
 Serialises the attack graph to a text description, asks an LLM (Groq
 Llama 3.3 70B by default) to produce a JSON attack plan, validates
 every step against the actual graph edges, and retries with error
-feedback on failure.
+feedback on failure. If Groq is unavailable or no API key is supplied,
+the planner falls back to a local graph-constrained shortest-path mode
+so the command surface stays runnable in Windows or WSL-only setups.
 
 Supports mid-run replanning via ``plan_with_context()`` which includes
 prior execution context (completed steps, failed step, IDS alert info)
@@ -62,36 +64,43 @@ Fix the JSON and output ONLY the corrected JSON array.\
 
 
 class LLMPlanner(BasePlanner):
-    """Groq-guided planner that calls the Groq Chat Completions API.
+    """Groq-guided planner with an offline local fallback mode.
 
     Attributes:
         model: Groq model identifier.
         max_retries: Maximum number of parse/validation retry attempts.
+        backend: Either ``"groq"`` or ``"offline"``.
     """
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str = "",
         model: str = "llama-3.3-70b-versatile",
         max_retries: int = 3,
     ) -> None:
         """Initialise the LLM planner with API credentials.
 
         Args:
-            api_key: Groq API key.
+            api_key: Groq API key. If omitted, planner uses offline fallback.
             model: Chat model identifier, e.g. ``"llama-3.3-70b-versatile"``.
             max_retries: How many times to retry on bad JSON or invalid
                 edges before raising ``NoPlanFoundError``.
         """
-        if Groq is None:
-            raise ImportError(
-                "The 'groq' package is required for the LLM planner. "
-                "Install dependencies with: pip install -r requirements.txt"
-            )
-
-        self._client = Groq(api_key=api_key)
         self.model = model
         self.max_retries = max_retries
+        self.backend = "groq"
+        self._client = None
+
+        if api_key and Groq is not None:
+            self._client = Groq(api_key=api_key)
+        else:
+            self.backend = "offline"
+            reason = "missing GROQ_API_KEY" if not api_key else "missing groq package"
+            logger.warning(
+                "LLM planner running in offline fallback mode (%s). "
+                "Set GROQ_API_KEY and install dependencies to use Groq.",
+                reason,
+            )
 
     # ------------------------------------------------------------------
     # Public API
@@ -195,6 +204,9 @@ class LLMPlanner(BasePlanner):
         Raises:
             NoPlanFoundError: After all retries are exhausted.
         """
+        if self._client is None:
+            return self._offline_plan(graph, start, goal)
+
         last_error = "Unknown error"
         for attempt in range(self.max_retries):
             raw = self._call_api(messages)
@@ -253,6 +265,39 @@ class LLMPlanner(BasePlanner):
             return content.strip()
         except Exception as exc:
             raise NoPlanFoundError(f"Groq API error: {exc}") from exc
+
+    def _offline_plan(
+        self,
+        graph: nx.DiGraph,
+        start: str,
+        goal: str,
+    ) -> list[AttackEdge]:
+        """Return a local shortest-path fallback when Groq is unavailable."""
+        if start not in graph:
+            raise NoPlanFoundError(f"Start node '{start}' not in graph.")
+        if goal not in graph:
+            raise NoPlanFoundError(f"Goal node '{goal}' not in graph.")
+
+        try:
+            node_path = nx.shortest_path(
+                graph,
+                source=start,
+                target=goal,
+                weight=lambda u, v, d: self.edge_cost(d["data"]),
+            )
+        except nx.NetworkXNoPath:
+            raise NoPlanFoundError(
+                f"No exploitable path from '{start}' to '{goal}' in offline LLM fallback."
+            )
+        except nx.NodeNotFound as exc:
+            raise NoPlanFoundError(str(exc)) from exc
+
+        path = self.path_nodes_to_edges(graph, node_path)
+        logger.info(
+            "Offline LLM fallback produced path: %d steps.",
+            len(path),
+        )
+        return path
 
 
 # ---------------------------------------------------------------------------

@@ -204,7 +204,28 @@ sequenceDiagram
 
 ## Setup
 
+## Windows And WSL Support
+
+The main CLI is now designed to be runnable from either:
+
+- Windows PowerShell
+- WSL
+
+No Linux-only host setup is required for the command surface itself. The repo supports:
+
+- Groq-backed LLM planning when `GROQ_API_KEY` is configured
+- Offline local fallback for the `llm` planner when Groq is not configured
+- Relative output paths and auto-created output directories
+- Auto-resolved IDS log path defaults for Windows and WSL-friendly local setups
+
+Recommended launchers:
+
+- WSL: `python3 main.py ...`
+- Windows PowerShell: `py -3 .\main.py ...`
+
 ### 1. Clone and create an environment
+
+#### WSL
 
 ```bash
 git clone https://github.com/Sonu0305/Automated-Attack-Planning-with-Attack-Graphs.git
@@ -214,9 +235,21 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+#### Windows PowerShell
+
+```powershell
+git clone https://github.com/Sonu0305/Automated-Attack-Planning-with-Attack-Graphs.git
+cd Automated-Attack-Planning-with-Attack-Graphs
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
 ### 2. Export required environment variables
 
 `config.yaml` uses `${VAR}` substitution, so secrets should come from the environment.
+
+#### WSL
 
 ```bash
 export MSF_RPC_PASSWORD="your-msfrpc-password"
@@ -225,22 +258,52 @@ export NEO4J_PASSWORD="your-neo4j-password"
 export NVD_API_KEY="your-nvd-api-key"   # optional but useful
 ```
 
+#### Windows PowerShell
+
+```powershell
+$env:MSF_RPC_PASSWORD="your-msfrpc-password"
+$env:GROQ_API_KEY="your-groq-api-key"
+$env:NEO4J_PASSWORD="your-neo4j-password"
+$env:NVD_API_KEY="your-nvd-api-key"     # optional but useful
+```
+
+If `GROQ_API_KEY` is not set, the `llm` planner still runs in a local offline fallback mode so demos remain runnable on Windows or WSL-only setups.
+
 ### 3. Review configuration
 
 Edit `config.yaml` if your network, goal host, credentials, or output directory differ from the defaults.
+
+Notable portability defaults:
+
+- `ids.log_path: "auto"` resolves to a sensible WSL or Windows-friendly location and falls back to `./logs/snort/fast.log`
+- relative output paths such as `results/...` are created automatically by the CLI when needed
 
 ## CLI Commands
 
 Top-level commands:
 
+#### WSL
+
 ```bash
 python3 main.py --help
+```
+
+#### Windows PowerShell
+
+```powershell
+py -3 .\main.py --help
 ```
 
 Global option available on every command:
 
 ```bash
 python3 main.py --config config.yaml <command> ...
+```
+
+Windows PowerShell equivalent:
+
+```powershell
+py -3 .\main.py --config config.yaml <command> ...
 ```
 
 Available subcommands:
@@ -507,6 +570,25 @@ python3 main.py evaluate \
   --graph graph.pkl \
   --runs 5 \
   --output results/demo
+```
+
+### Included demo scripts
+
+The repo includes end-to-end demo scripts for both supported host environments:
+
+- WSL: `scripts/demo_wsl.sh`
+- Windows PowerShell: `scripts/demo_windows.ps1`
+
+WSL usage:
+
+```bash
+bash scripts/demo_wsl.sh
+```
+
+Windows PowerShell usage:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\demo_windows.ps1
 ```
 
 ## End-to-End Demo
