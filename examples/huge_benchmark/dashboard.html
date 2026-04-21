@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AutoAttack Huge Benchmark</title>
+  <style>
+    body { font-family: Segoe UI, sans-serif; margin: 2rem; background: #0f172a; color: #e2e8f0; }
+    h1, h2 { color: #38bdf8; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0 2rem; }
+    th, td { border: 1px solid #334155; padding: 0.6rem; text-align: left; }
+    th { background: #1e293b; }
+    img { max-width: 100%; background: white; border-radius: 12px; margin: 1rem 0; }
+    .card { background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>AutoAttack Huge Benchmark</h1>
+  <div class="card">
+    <p><strong>600</strong> devices,
+    <strong>1597</strong> attack edges,
+    <strong>12</strong> zones.</p>
+  </div>
+  <h2>Planner Results</h2>
+  <table>
+    <thead><tr><th>Planner/view</th><th>Steps</th><th>Exploit cost</th><th>Detection cost</th><th>Combined cost</th><th>Mean planning time</th></tr></thead>
+    <tbody><tr><td>astar</td><td>6</td><td>1.2</td><td>5.7</td><td>29.1</td><td>0.0662 ms</td></tr><tr><td>detection_combined</td><td>11</td><td>14.3</td><td>1.54</td><td>14.85</td><td>0.4248 ms</td></tr><tr><td>rl_seeded</td><td>11</td><td>14.3</td><td>1.54</td><td>14.85</td><td>0.1671 ms</td></tr><tr><td>llm_offline</td><td>6</td><td>1.2</td><td>5.7</td><td>29.1</td><td>3.253 ms</td></tr><tr><td>detection_fastest</td><td>6</td><td>1.2</td><td>5.7</td><td>29.1</td><td>86.2081 ms</td></tr><tr><td>detection_stealthiest</td><td>13</td><td>32.5</td><td>0.26</td><td>17.55</td><td>86.2081 ms</td></tr><tr><td>detection_pareto_balanced</td><td>11</td><td>14.3</td><td>1.54</td><td>14.85</td><td>86.2081 ms</td></tr></tbody>
+  </table>
+  <h2>Visuals</h2>
+  <img src="visuals/topology_overview.svg" alt="Topology overview">
+  <img src="visuals/path_lengths.svg" alt="Path lengths">
+  <img src="visuals/planning_runtime.svg" alt="Planning runtime">
+  <img src="visuals/detection_cost.svg" alt="Detection cost">
+</body>
+</html>

@@ -210,6 +210,29 @@ class TestDetectionAwarePlanner:
             assert len(path) >= 1, f"{label} path is empty"
             assert path[-1].target_host == "B"
 
+    def test_plan_pareto_labels_true_objective_paths(self):
+        """Pareto labels should reflect fastest, stealthiest, and combined-cost paths."""
+        G = nx.DiGraph()
+        for node in ("A", "B", "C", "D", "E"):
+            G.add_node(node)
+
+        G.add_edge("A", "B", data=_make_edge("A", "B", cvss=9.8, detect=0.95, cve="CVE-FAST"))
+        G.add_edge("A", "C", data=_make_edge("A", "C", cvss=8.8, detect=0.15, cve="CVE-BAL-1"))
+        G.add_edge("C", "B", data=_make_edge("C", "B", cvss=8.8, detect=0.15, cve="CVE-BAL-2"))
+        G.add_edge("A", "D", data=_make_edge("A", "D", cvss=7.0, detect=0.01, cve="CVE-STEALTH-1"))
+        G.add_edge("D", "E", data=_make_edge("D", "E", cvss=7.0, detect=0.01, cve="CVE-STEALTH-2"))
+        G.add_edge("E", "B", data=_make_edge("E", "B", cvss=7.0, detect=0.01, cve="CVE-STEALTH-3"))
+
+        result = DetectionAwarePlanner().plan_pareto(G, "A", "B")
+
+        assert [edge.cve_id for edge in result["fastest"]] == ["CVE-FAST"]
+        assert [edge.cve_id for edge in result["balanced"]] == ["CVE-BAL-1", "CVE-BAL-2"]
+        assert [edge.cve_id for edge in result["stealthiest"]] == [
+            "CVE-STEALTH-1",
+            "CVE-STEALTH-2",
+            "CVE-STEALTH-3",
+        ]
+
     def test_raises_no_plan_found_on_disconnected(self):
         """DetectionAwarePlanner must raise NoPlanFoundError on no path."""
         G = nx.DiGraph()

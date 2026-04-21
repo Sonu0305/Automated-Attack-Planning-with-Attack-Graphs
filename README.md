@@ -31,6 +31,49 @@ The current codebase implements:
 
 This repository is best understood as a modular research prototype and experimentation platform, not a turnkey offensive security product.
 
+## Huge 600-Device Benchmark
+
+For a larger stress test, the repo includes a synthetic 600-device benchmark in [`examples/huge_benchmark/`](examples/huge_benchmark/). It is safe and local-only: the graph is generated in memory, planners run against a pickle, and no real network is touched.
+
+Run or regenerate it with:
+
+```bash
+python3 scripts/huge_benchmark.py --devices 600 --repeats 25 --output examples/huge_benchmark
+```
+
+Scale:
+
+- Devices: `600`
+- Attack edges: `1,597`
+- Network zones: `12`
+- Start: `10.60.0.1`
+- Goal: `10.60.11.50`
+
+Planner results from the committed run:
+
+| Planner/view | Steps | Detection cost | Mean planning time | Behavior |
+|---|---:|---:|---:|---|
+| `astar` | 6 | 5.70 | 0.0662 ms | Fastest exploit path, very noisy |
+| `llm_offline` | 6 | 5.70 | 3.253 ms | Offline graph-constrained LLM fallback mirrors A* |
+| `detection_combined` | 11 | 1.54 | 0.4248 ms | Trades speed for lower detection cost |
+| `rl_seeded` | 11 | 1.54 | 0.1671 ms | Learned-policy route follows the balanced corridor |
+| `detection_fastest` | 6 | 5.70 | 86.2081 ms | Pareto fastest route |
+| `detection_pareto_balanced` | 11 | 1.54 | 86.2081 ms | Pareto balanced route |
+| `detection_stealthiest` | 13 | 0.26 | 86.2081 ms | Longest route, lowest detection cost |
+
+The key difference is visible at scale: A* and LLM fallback choose the 6-step high-CVSS route, detection-aware planning moves to an 11-step lower-noise route, and the Pareto search exposes the 13-step ultra-stealth route while taking much longer to compute.
+
+![Huge benchmark topology](examples/huge_benchmark/visuals/topology_overview.svg)
+
+![Huge benchmark runtime](examples/huge_benchmark/visuals/planning_runtime.svg)
+
+Full artifacts:
+
+- [Huge benchmark README](examples/huge_benchmark/README.md)
+- [Reproducible commands](examples/huge_benchmark/commands.md)
+- [Benchmark summary JSON](examples/huge_benchmark/benchmark_summary.json)
+- [Static dashboard](examples/huge_benchmark/dashboard.html)
+
 ## Complex Benchmark Showcase
 
 The repository includes a committed complex benchmark bundle in [`examples/complex_benchmark/`](examples/complex_benchmark/) so the README shows a real multi-planner run instead of only toy commands.

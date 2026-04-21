@@ -1,0 +1,40 @@
+# Huge benchmark config.
+# Uses offline LLM fallback by default so the 600-device example is free to run.
+
+lab:
+  attacker_ip: "10.60.0.1"
+  network: "10.60.0.0/16"
+  hosts: []
+  goal: "10.60.11.50"
+
+metasploit:
+  host: "127.0.0.1"
+  port: 55553
+  password: ""
+
+groq:
+  api_key: ""
+  model: "llama-3.3-70b-versatile"
+  max_retries: 1
+
+neo4j:
+  uri: "bolt://localhost:7687"
+  user: "neo4j"
+  password: ""
+
+ids:
+  type: "snort"
+  log_path: "auto"
+  alert_threshold: 3
+
+planner:
+  default: "astar"
+  detection_alpha: 0.5
+  detection_beta: 0.5
+  rl_qtable_path: "examples/huge_benchmark/qtable.pkl"
+  rl_episodes: 0
+
+evaluation:
+  runs_per_planner: 1
+  output_dir: "examples/huge_benchmark"
+  generate_dashboard: true

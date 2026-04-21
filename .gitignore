@@ -41,6 +41,8 @@ results/
 !examples/complex_benchmark/**/*.png
 !examples/complex_benchmark/**/*.pkl
 !examples/complex_benchmark/**/*.jsonl
+!examples/huge_benchmark/**/*.html
+!examples/huge_benchmark/**/*.pkl
 
 # Secrets & credentials — NEVER commit these
 .env

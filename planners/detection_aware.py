@@ -148,19 +148,39 @@ class DetectionAwarePlanner(BasePlanner):
         if goal not in graph:
             raise NoPlanFoundError(f"Goal node '{goal}' not in graph.")
 
-        # Gather candidate node-paths.
+        # Gather objective-specific candidates first so labels stay truthful
+        # even when the combined-cost path generator would rank them low.
         candidates: list[list[AttackEdge]] = []
+        for alpha, beta in ((1.0, 0.0), (0.0, 1.0), (0.5, 0.5)):
+            try:
+                node_path = nx.shortest_path(
+                    graph,
+                    start,
+                    goal,
+                    weight=lambda u, v, d, a=alpha, b=beta: self._make_cost_fn(a, b)(d["data"]),
+                )
+                path = self.path_nodes_to_edges(graph, node_path)
+                if path and not _path_already_in_candidates(path, candidates):
+                    candidates.append(path)
+            except (nx.NetworkXNoPath, nx.NodeNotFound):
+                pass
+
+        # Add a bounded set of combined-cost simple paths for extra Pareto
+        # diversity without making large graphs explode combinatorially.
         try:
             path_gen = nx.shortest_simple_paths(
                 graph, start, goal,
                 weight=lambda u, v, d: self._make_cost_fn(0.5, 0.5)(d["data"]),
             )
             for node_path in path_gen:
-                candidates.append(self.path_nodes_to_edges(graph, node_path))
+                path = self.path_nodes_to_edges(graph, node_path)
+                if not _path_already_in_candidates(path, candidates):
+                    candidates.append(path)
                 if len(candidates) >= _MAX_CANDIDATE_PATHS:
                     break
         except (nx.NetworkXNoPath, nx.NodeNotFound):
-            raise NoPlanFoundError(f"No path from '{start}' to '{goal}'.")
+            if not candidates:
+                raise NoPlanFoundError(f"No path from '{start}' to '{goal}'.")
 
         if not candidates:
             raise NoPlanFoundError(f"No candidates found from '{start}' to '{goal}'.")
@@ -179,8 +199,8 @@ class DetectionAwarePlanner(BasePlanner):
         fastest_path = min(pareto, key=lambda t: t[0])[2]
         # Stealthiest = lowest detection cost.
         stealthiest_path = min(pareto, key=lambda t: t[1])[2]
-        # Balanced = lowest sum of both normalised costs.
-        balanced_path = min(pareto, key=lambda t: t[0] + t[1])[2]
+        # Balanced = same alpha=beta=0.5 combined cost used by plan().
+        balanced_path = min(pareto, key=lambda t: 0.5 * t[0] + 5.0 * t[1])[2]
 
         _log_pareto_table(fastest_path, stealthiest_path, balanced_path)
 
@@ -243,6 +263,22 @@ def _pareto_front(
         if not dominated:
             pareto.append(candidate)
     return pareto if pareto else scored[:3]
+
+
+def _path_already_in_candidates(
+    path: list[AttackEdge],
+    candidates: list[list[AttackEdge]],
+) -> bool:
+    """Return True when an equivalent source-target-CVE path is present."""
+    signature = [(edge.source_host, edge.target_host, edge.cve_id) for edge in path]
+    for candidate in candidates:
+        candidate_signature = [
+            (edge.source_host, edge.target_host, edge.cve_id)
+            for edge in candidate
+        ]
+        if candidate_signature == signature:
+            return True
+    return False
 
 
 def _log_pareto_table(
