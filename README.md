@@ -38,30 +38,34 @@ For a larger stress test, the repo includes a synthetic 600-device benchmark in 
 Run or regenerate it with:
 
 ```bash
-python3 scripts/huge_benchmark.py --devices 600 --repeats 25 --output examples/huge_benchmark
+export GROQ_API_KEY="your-groq-api-key"  # optional; enables live Groq instead of offline fallback
+python3 scripts/huge_benchmark.py --devices 600 --repeats 5 --output examples/huge_benchmark
 ```
 
 Scale:
 
 - Devices: `600`
-- Attack edges: `1,597`
+- Attack edges: `1,603`
 - Network zones: `12`
 - Start: `10.60.0.1`
 - Goal: `10.60.11.50`
+- LLM backend in the committed run: `groq`
 
 Planner results from the committed run:
 
 | Planner/view | Steps | Detection cost | Mean planning time | Behavior |
 |---|---:|---:|---:|---|
-| `astar` | 6 | 5.70 | 0.0662 ms | Fastest exploit path, very noisy |
-| `llm_offline` | 6 | 5.70 | 3.253 ms | Offline graph-constrained LLM fallback mirrors A* |
-| `detection_combined` | 11 | 1.54 | 0.4248 ms | Trades speed for lower detection cost |
-| `rl_seeded` | 11 | 1.54 | 0.1671 ms | Learned-policy route follows the balanced corridor |
-| `detection_fastest` | 6 | 5.70 | 86.2081 ms | Pareto fastest route |
-| `detection_pareto_balanced` | 11 | 1.54 | 86.2081 ms | Pareto balanced route |
-| `detection_stealthiest` | 13 | 0.26 | 86.2081 ms | Longest route, lowest detection cost |
+| `astar` | 6 | 5.70 | 0.1790 ms | Fastest exploit path, very noisy |
+| `detection_combined` | 11 | 1.54 | 0.6222 ms | Trades speed for lower detection cost |
+| `rl_seeded` | 11 | 1.54 | 0.1502 ms | Learned-policy route follows the balanced corridor |
+| `llm_groq` | 10 | 2.50 | 2242.9294 ms | Live Groq picks a hybrid route that mixes balanced pivots with decoy jumps |
+| `detection_fastest` | 6 | 5.70 | 90.3948 ms | Pareto fastest route |
+| `detection_pareto_balanced` | 11 | 1.54 | 90.3948 ms | Pareto balanced route |
+| `detection_stealthiest` | 18 | 0.36 | 90.3948 ms | Longest route, lowest detection cost |
 
-The key difference is visible at scale: A* and LLM fallback choose the 6-step high-CVSS route, detection-aware planning moves to an 11-step lower-noise route, and the Pareto search exposes the 13-step ultra-stealth route while taking much longer to compute.
+The key difference is visible at scale: A* keeps the 6-step high-CVSS route, detection-aware planning moves to an 11-step lower-noise route, RL follows that learned balanced corridor, and live Groq takes a 10-step hybrid route that partially follows the balanced corridor before using decoy edges to shorten the finish. The Pareto search is still much slower than the simple planners because it has to surface multiple objective-optimal alternatives.
+
+Because live LLM output is nondeterministic, a fresh Groq-backed rerun may choose a different valid route from the same reduced prompt subgraph.
 
 ![Huge benchmark topology](examples/huge_benchmark/visuals/topology_overview.svg)
 

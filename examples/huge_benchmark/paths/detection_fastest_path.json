@@ -1,7 +1,7 @@
 [
   {
     "source": "10.60.0.1",
-    "target": "10.60.2.6",
+    "target": "10.60.1.13",
     "cve_id": "CVE-2026-F0001",
     "module": "exploit/synthetic/rdp/cve_2026_f0001",
     "cvss": 9.8,
@@ -9,8 +9,8 @@
     "service": "rdp"
   },
   {
-    "source": "10.60.2.6",
-    "target": "10.60.4.12",
+    "source": "10.60.1.13",
+    "target": "10.60.3.19",
     "cve_id": "CVE-2026-F0002",
     "module": "exploit/synthetic/rdp/cve_2026_f0002",
     "cvss": 9.8,
@@ -18,8 +18,8 @@
     "service": "rdp"
   },
   {
-    "source": "10.60.4.12",
-    "target": "10.60.6.18",
+    "source": "10.60.3.19",
+    "target": "10.60.5.25",
     "cve_id": "CVE-2026-F0003",
     "module": "exploit/synthetic/rdp/cve_2026_f0003",
     "cvss": 9.8,
@@ -27,8 +27,8 @@
     "service": "rdp"
   },
   {
-    "source": "10.60.6.18",
-    "target": "10.60.8.24",
+    "source": "10.60.5.25",
+    "target": "10.60.7.31",
     "cve_id": "CVE-2026-F0004",
     "module": "exploit/synthetic/rdp/cve_2026_f0004",
     "cvss": 9.8,
@@ -36,8 +36,8 @@
     "service": "rdp"
   },
   {
-    "source": "10.60.8.24",
-    "target": "10.60.10.30",
+    "source": "10.60.7.31",
+    "target": "10.60.9.37",
     "cve_id": "CVE-2026-F0005",
     "module": "exploit/synthetic/rdp/cve_2026_f0005",
     "cvss": 9.8,
@@ -45,7 +45,7 @@
     "service": "rdp"
   },
   {
-    "source": "10.60.10.30",
+    "source": "10.60.9.37",
     "target": "10.60.11.50",
     "cve_id": "CVE-2026-F0006",
     "module": "exploit/synthetic/rdp/cve_2026_f0006",

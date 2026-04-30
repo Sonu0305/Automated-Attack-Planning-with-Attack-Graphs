@@ -37,39 +37,30 @@
   },
   {
     "source": "10.60.4.26",
-    "target": "10.60.5.31",
-    "cve_id": "CVE-2026-B0005",
-    "module": "exploit/synthetic/http/cve_2026_b0005",
-    "cvss": 8.7,
-    "detection_weight": 0.14,
-    "service": "http"
+    "target": "10.60.6.47",
+    "cve_id": "CVE-2026-D00678",
+    "module": "exploit/synthetic/rdp/cve_2026_d00678",
+    "cvss": 6.1,
+    "detection_weight": 0.37,
+    "service": "rdp"
   },
   {
-    "source": "10.60.5.31",
-    "target": "10.60.6.36",
-    "cve_id": "CVE-2026-B0006",
-    "module": "exploit/synthetic/http/cve_2026_b0006",
-    "cvss": 8.7,
-    "detection_weight": 0.14,
-    "service": "http"
+    "source": "10.60.6.47",
+    "target": "10.60.7.30",
+    "cve_id": "CVE-2026-D01041",
+    "module": "exploit/synthetic/rdp/cve_2026_d01041",
+    "cvss": 5.3,
+    "detection_weight": 0.63,
+    "service": "rdp"
   },
   {
-    "source": "10.60.6.36",
-    "target": "10.60.7.41",
-    "cve_id": "CVE-2026-B0007",
-    "module": "exploit/synthetic/http/cve_2026_b0007",
-    "cvss": 8.7,
-    "detection_weight": 0.14,
-    "service": "http"
-  },
-  {
-    "source": "10.60.7.41",
+    "source": "10.60.7.30",
     "target": "10.60.8.46",
-    "cve_id": "CVE-2026-B0008",
-    "module": "exploit/synthetic/http/cve_2026_b0008",
-    "cvss": 8.7,
-    "detection_weight": 0.14,
-    "service": "http"
+    "cve_id": "CVE-2026-D01140",
+    "module": "exploit/synthetic/rdp/cve_2026_d01140",
+    "cvss": 4.6,
+    "detection_weight": 0.52,
+    "service": "rdp"
   },
   {
     "source": "10.60.8.46",

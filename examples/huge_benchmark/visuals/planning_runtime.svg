@@ -2,18 +2,18 @@
 <rect width="1040" height="268" fill="#f8fafc"/>
 <text x="24" y="34" font-size="24" font-family="Segoe UI" font-weight="700" fill="#0f172a">Mean planning runtime</text>
 <text x="24" y="79" font-size="14" font-family="Segoe UI" fill="#334155">astar</text>
-<rect x="260" y="58" width="0.5" height="22" rx="6" fill="#2563eb"/>
-<text x="270.5" y="75" font-size="13" font-family="Segoe UI" fill="#0f172a">0.0662 ms</text>
+<rect x="260" y="58" width="0.1" height="22" rx="6" fill="#2563eb"/>
+<text x="270.1" y="75" font-size="13" font-family="Segoe UI" fill="#0f172a">0.179 ms</text>
 <text x="24" y="113" font-size="14" font-family="Segoe UI" fill="#334155">detection_combined</text>
-<rect x="260" y="92" width="3.2" height="22" rx="6" fill="#dc2626"/>
-<text x="273.2" y="109" font-size="13" font-family="Segoe UI" fill="#0f172a">0.4248 ms</text>
+<rect x="260" y="92" width="0.2" height="22" rx="6" fill="#dc2626"/>
+<text x="270.2" y="109" font-size="13" font-family="Segoe UI" fill="#0f172a">0.6222 ms</text>
 <text x="24" y="147" font-size="14" font-family="Segoe UI" fill="#334155">rl_seeded</text>
-<rect x="260" y="126" width="1.2" height="22" rx="6" fill="#16a34a"/>
-<text x="271.2" y="143" font-size="13" font-family="Segoe UI" fill="#0f172a">0.1671 ms</text>
-<text x="24" y="181" font-size="14" font-family="Segoe UI" fill="#334155">llm_offline</text>
-<rect x="260" y="160" width="24.1" height="22" rx="6" fill="#f59e0b"/>
-<text x="294.1" y="177" font-size="13" font-family="Segoe UI" fill="#0f172a">3.253 ms</text>
+<rect x="260" y="126" width="0.0" height="22" rx="6" fill="#16a34a"/>
+<text x="270.0" y="143" font-size="13" font-family="Segoe UI" fill="#0f172a">0.1502 ms</text>
+<text x="24" y="181" font-size="14" font-family="Segoe UI" fill="#334155">llm_groq</text>
+<rect x="260" y="160" width="640.0" height="22" rx="6" fill="#f59e0b"/>
+<text x="910.0" y="177" font-size="13" font-family="Segoe UI" fill="#0f172a">2242.93 ms</text>
 <text x="24" y="215" font-size="14" font-family="Segoe UI" fill="#334155">detection_pareto</text>
-<rect x="260" y="194" width="640.0" height="22" rx="6" fill="#7c3aed"/>
-<text x="910.0" y="211" font-size="13" font-family="Segoe UI" fill="#0f172a">86.2081 ms</text>
+<rect x="260" y="194" width="25.8" height="22" rx="6" fill="#7c3aed"/>
+<text x="295.8" y="211" font-size="13" font-family="Segoe UI" fill="#0f172a">90.3948 ms</text>
 </svg>

@@ -3,7 +3,8 @@
 Regenerate the full benchmark:
 
 ```bash
-python3 scripts/huge_benchmark.py --devices 600 --repeats 25 --output examples/huge_benchmark
+export GROQ_API_KEY="your-groq-api-key"  # optional; enables live Groq instead of offline fallback
+python3 scripts/huge_benchmark.py --devices 600 --repeats 5 --output examples/huge_benchmark
 ```
 
 Run individual planners against the generated graph:
@@ -15,6 +16,7 @@ python3 main.py --config examples/huge_benchmark/config.yaml plan --graph exampl
 python3 main.py --config examples/huge_benchmark/config.yaml plan --graph examples/huge_benchmark/huge_graph.pkl --planner llm --start 10.60.0.1 --goal 10.60.11.50
 ```
 
-The bundled config intentionally uses offline LLM fallback. Add a Groq API key
-to that config only if you explicitly want to test live LLM latency on the
-large serialized graph.
+The bundled config reads `GROQ_API_KEY` from the environment. Without it,
+the benchmark automatically falls back to the local graph-constrained mode.
+When Groq is active, the script times the live LLM planner once per benchmark
+run to avoid unnecessary API spend.

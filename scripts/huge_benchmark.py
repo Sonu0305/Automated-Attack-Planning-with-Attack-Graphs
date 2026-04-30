@@ -20,6 +20,7 @@ import argparse
 import html
 import json
 import math
+import os
 import pickle
 import random
 import statistics
@@ -133,47 +134,38 @@ def build_huge_graph(
                     description="Decoy enterprise edge",
                 )
 
-    # Three explicit corridors. These are added last so they win if a random
-    # edge accidentally uses the same source/target pair.
-    fast_nodes = [
-        start,
-        node(2, 6),
-        node(4, 12),
-        node(6, 18),
-        node(8, 24),
-        node(10, 30),
-        goal,
-    ]
-    balanced_nodes = [
-        start,
-        node(1, 5),
-        node(2, 10),
-        node(3, 15),
-        node(4, 20),
-        node(5, 25),
-        node(6, 30),
-        node(7, 35),
-        node(8, 40),
-        node(9, 45),
-        node(10, 48),
-        goal,
-    ]
-    stealth_nodes = [
-        start,
-        node(0, 40),
-        node(1, 42),
-        node(2, 44),
-        node(3, 46),
-        node(4, 48),
-        node(5, 50),
-        node(6, 47),
-        node(7, 44),
-        node(8, 41),
-        node(9, 38),
-        node(10, 35),
-        node(11, 32),
-        goal,
-    ]
+    # Three explicit corridors. Their depth scales with zone count so
+    # larger synthetic networks become meaningfully harder instead of
+    # only getting wider.
+    fast_hops = min(18, max(6, zones // 4))
+    balanced_hops = min(48, max(11, zones // 2))
+    stealth_hops = min(96, max(13, int(zones * 1.5)))
+
+    fast_nodes = _build_route_nodes(
+        by_zone=by_zone,
+        zone_sequence=_spread_zone_indices(zones, fast_hops),
+        lane_seed=6,
+        lane_stride=6,
+    )
+    balanced_nodes = _build_route_nodes(
+        by_zone=by_zone,
+        zone_sequence=_spread_zone_indices(zones, balanced_hops),
+        lane_seed=5,
+        lane_stride=5,
+    )
+    stealth_nodes = _build_route_nodes(
+        by_zone=by_zone,
+        zone_sequence=_expanded_zone_indices(zones, stealth_hops),
+        lane_seed=40,
+        lane_stride=2,
+    )
+
+    fast_nodes[0] = start
+    balanced_nodes[0] = start
+    stealth_nodes[0] = start
+    fast_nodes[-1] = goal
+    balanced_nodes[-1] = goal
+    stealth_nodes[-1] = goal
 
     _add_route(
         graph,
@@ -218,6 +210,7 @@ def run_benchmark(
     routes: dict[str, list[str]],
     output_dir: Path,
     repeats: int,
+    devices: int,
 ) -> dict:
     """Run all planners and write benchmark artifacts."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -237,7 +230,9 @@ def run_benchmark(
     astar = AStarPlanner()
     detection = DetectionAwarePlanner(alpha=0.5, beta=0.5)
     rl = RLPlanner(qtable_path=str(qtable_path))
-    llm = LLMPlanner(api_key="")
+    llm = LLMPlanner(api_key=os.environ.get("GROQ_API_KEY", ""))
+    llm_label = "llm_groq" if llm.backend == "groq" else "llm_offline"
+    llm_repeats = 1 if llm.backend == "groq" else repeats
 
     timings: dict[str, dict] = {}
     paths: RouteMap = {}
@@ -251,8 +246,8 @@ def run_benchmark(
     timings["rl_seeded"], paths["rl_seeded"] = _time_path(
         "rl_seeded", lambda: rl.plan(graph, start, goal), repeats
     )
-    timings["llm_offline"], paths["llm_offline"] = _time_path(
-        "llm_offline", lambda: llm.plan(graph, start, goal), repeats
+    timings[llm_label], paths[llm_label] = _time_path(
+        llm_label, lambda: llm.plan(graph, start, goal), llm_repeats
     )
 
     pareto_timing, pareto_paths = _time_value(
@@ -271,6 +266,7 @@ def run_benchmark(
             "start": start,
             "goal": goal,
             "repeats": repeats,
+            "llm_backend": llm.backend,
         },
         "timings_ms": timings,
         "paths": {
@@ -286,7 +282,15 @@ def run_benchmark(
 
     (output_dir / "benchmark_summary.json").write_text(json.dumps(summary, indent=2))
     _write_config(output_dir / "config.yaml", start, goal, qtable_path)
-    _write_commands(output_dir / "commands.md", graph_path, output_dir, start, goal)
+    _write_commands(
+        output_dir / "commands.md",
+        graph_path,
+        output_dir,
+        start,
+        goal,
+        devices,
+        repeats,
+    )
     _write_report(output_dir / "README.md", summary)
     _write_dashboard(output_dir / "dashboard.html", summary)
     _write_visuals(visuals_dir, graph, routes, summary)
@@ -313,6 +317,52 @@ def _add_route(
             service=service,
             description=description,
         )
+
+
+def _spread_zone_indices(zones: int, hops: int) -> list[int]:
+    """Return a monotonic zone sequence with exactly ``hops`` edges."""
+    if hops < 1:
+        return [0, zones - 1]
+    return [
+        min(zones - 1, (idx * (zones - 1)) // hops)
+        for idx in range(hops + 1)
+    ]
+
+
+def _expanded_zone_indices(zones: int, hops: int) -> list[int]:
+    """Return a zone sequence that allows extra intra-zone stealth hops."""
+    base_hops = zones - 1
+    if hops <= base_hops:
+        return _spread_zone_indices(zones, hops)
+
+    extra_hops = hops - base_hops
+    extras = [0] * max(1, zones - 1)
+    for idx in range(extra_hops):
+        extras[idx % len(extras)] += 1
+
+    indices = [0]
+    for zone in range(zones - 1):
+        for _ in range(extras[zone]):
+            indices.append(zone)
+        indices.append(zone + 1)
+    return indices
+
+
+def _build_route_nodes(
+    by_zone: dict[int, list[str]],
+    zone_sequence: list[int],
+    lane_seed: int,
+    lane_stride: int,
+) -> list[str]:
+    """Map a zone sequence to concrete node IDs with deterministic lane changes."""
+    per_zone_counts: dict[int, int] = {}
+    nodes: list[str] = []
+    for idx, zone in enumerate(zone_sequence):
+        per_zone_counts[zone] = per_zone_counts.get(zone, 0) + 1
+        candidates = by_zone[zone]
+        slot = (lane_seed + idx * lane_stride + per_zone_counts[zone] - 1) % len(candidates)
+        nodes.append(candidates[slot])
+    return nodes
 
 
 def _add_edge(
@@ -432,7 +482,7 @@ def _path_to_json(path: list[AttackEdge]) -> list[dict]:
 def _write_config(config_path: Path, start: str, goal: str, qtable_path: Path) -> None:
     config_path.write_text(
         f"""# Huge benchmark config.
-# Uses offline LLM fallback by default so the 600-device example is free to run.
+# Uses GROQ_API_KEY from the environment when available.
 
 lab:
   attacker_ip: "{start}"
@@ -446,7 +496,7 @@ metasploit:
   password: ""
 
 groq:
-  api_key: ""
+  api_key: "${{GROQ_API_KEY}}"
   model: "llama-3.3-70b-versatile"
   max_retries: 1
 
@@ -481,6 +531,8 @@ def _write_commands(
     output_dir: Path,
     start: str,
     goal: str,
+    devices: int,
+    repeats: int,
 ) -> None:
     graph_arg = graph_path.as_posix()
     config_arg = (output_dir / "config.yaml").as_posix()
@@ -490,7 +542,8 @@ def _write_commands(
 Regenerate the full benchmark:
 
 ```bash
-python3 scripts/huge_benchmark.py --devices 600 --repeats 25 --output {output_dir.as_posix()}
+export GROQ_API_KEY="your-groq-api-key"  # optional; enables live Groq instead of offline fallback
+python3 scripts/huge_benchmark.py --devices {devices} --repeats {repeats} --output {output_dir.as_posix()}
 ```
 
 Run individual planners against the generated graph:
@@ -502,16 +555,17 @@ python3 main.py --config {config_arg} plan --graph {graph_arg} --planner rl --st
 python3 main.py --config {config_arg} plan --graph {graph_arg} --planner llm --start {start} --goal {goal}
 ```
 
-The bundled config intentionally uses offline LLM fallback. Add a Groq API key
-to that config only if you explicitly want to test live LLM latency on the
-large serialized graph.
+The bundled config reads `GROQ_API_KEY` from the environment. Without it,
+the benchmark automatically falls back to the local graph-constrained mode.
+When Groq is active, the script times the live LLM planner once per benchmark
+run to avoid unnecessary API spend.
 """
     )
 
 
 def _write_report(path: Path, summary: dict) -> None:
     lines = [
-        "# Huge 600-Device Benchmark",
+        f"# Huge {summary['benchmark']['devices']:,}-Device Benchmark",
         "",
         "Synthetic, local-only benchmark for comparing planner behavior on a large attack graph.",
         "",
@@ -523,6 +577,7 @@ def _write_report(path: Path, summary: dict) -> None:
         f"- Start: `{summary['benchmark']['start']}`",
         f"- Goal: `{summary['benchmark']['goal']}`",
         f"- Timing repeats per planner: `{summary['benchmark']['repeats']}`",
+        f"- LLM backend used in this run: `{summary['benchmark']['llm_backend']}`",
         "",
         "## Planner Results",
         "",
@@ -537,6 +592,12 @@ def _write_report(path: Path, summary: dict) -> None:
             f"{metrics['detection_cost']} | {metrics['combined_cost']} | "
             f"{timing.get('mean', 0)} ms |"
         )
+    if summary["benchmark"]["llm_backend"] == "groq":
+        lines += [
+            "",
+            "Live Groq timing is intentionally sampled once even when the other planners use repeated local timing runs.",
+            "Live Groq path selection is also nondeterministic, so a fresh rerun may choose a different valid route through the same reduced prompt subgraph.",
+        ]
     lines += [
         "",
         "## Visuals",
@@ -767,6 +828,7 @@ def main() -> None:
         routes=routes,
         output_dir=out_dir,
         repeats=args.repeats,
+        devices=args.devices,
     )
     print(f"Huge benchmark written to {out_dir}")
     print(

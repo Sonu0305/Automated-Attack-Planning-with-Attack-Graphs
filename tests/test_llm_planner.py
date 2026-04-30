@@ -68,6 +68,26 @@ def build_test_graph() -> nx.DiGraph:
     return G
 
 
+def build_large_test_graph() -> nx.DiGraph:
+    """Build a large graph where only a tiny subset matters to the plan."""
+    graph = nx.DiGraph()
+    start = "192.168.56.10"
+    pivot = "192.168.56.20"
+    goal = "192.168.56.30"
+
+    graph.add_node(start)
+    graph.add_node(pivot)
+    graph.add_node(goal)
+    graph.add_edge(start, pivot, data=_make_edge(start, pivot, cvss=8.7))
+    graph.add_edge(pivot, goal, data=_make_edge(pivot, goal, cvss=8.4))
+
+    for idx in range(1, 150):
+        node = f"10.0.0.{idx}"
+        graph.add_node(node)
+
+    return graph
+
+
 def _mock_response(content: str) -> MagicMock:
     """Create a minimal mock object matching the Groq chat response.
 
@@ -246,3 +266,49 @@ class TestLLMPlanner:
         assert len(path) == 1
         assert path[0].source_host == self.START
         assert path[0].target_host == self.GOAL
+
+    @patch("planners.llm_planner.Groq")
+    def test_large_graph_prompt_is_reduced_for_groq_calls(self, mock_groq_cls):
+        """Large graphs should be reduced before serialising into the prompt."""
+        from planners.llm_planner import LLMPlanner
+
+        valid_two_step_plan = json.dumps([
+            {
+                "source_ip": "192.168.56.10",
+                "target_ip": "192.168.56.20",
+                "cve_id": "CVE-2017-0144",
+                "exploit_module": "exploit/windows/smb/ms17_010_eternalblue",
+                "reason": "Pivot through the first reachable host.",
+            },
+            {
+                "source_ip": "192.168.56.20",
+                "target_ip": "192.168.56.30",
+                "cve_id": "CVE-2017-0144",
+                "exploit_module": "exploit/windows/smb/ms17_010_eternalblue",
+                "reason": "Goal is directly reachable from the pivot.",
+            },
+        ])
+
+        planner = LLMPlanner(api_key="test-key")
+        planner._client.chat.completions.create.return_value = _mock_response(
+            valid_two_step_plan
+        )
+
+        graph = build_large_test_graph()
+        path = planner.plan(graph, self.START, self.GOAL)
+
+        call_args = planner._client.chat.completions.create.call_args
+        messages = call_args.kwargs.get("messages")
+        if messages is None and call_args.args:
+            messages = call_args.args[0]
+        if messages is None:
+            messages = []
+        user_prompt = next(
+            (message.get("content", "") for message in messages if message.get("role") == "user"),
+            "",
+        )
+
+        assert len(path) == 2
+        assert "192.168.56.20" in user_prompt
+        assert "10.0.0.149" not in user_prompt
+        assert user_prompt.count("HOST ") < 20

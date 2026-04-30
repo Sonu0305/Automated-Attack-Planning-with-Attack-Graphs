@@ -36,6 +36,10 @@ from planners.base_planner import BasePlanner, NoPlanFoundError
 
 logger = logging.getLogger(__name__)
 
+_MAX_PROMPT_NODES = 140
+_MAX_PROMPT_EDGES = 320
+_MAX_PROMPT_CANDIDATE_PATHS = 12
+
 _SYSTEM_PROMPT = """\
 You are a red team attack planner. Given a network attack graph, output a \
 JSON array of attack steps from the start IP to the goal IP.
@@ -141,7 +145,8 @@ class LLMPlanner(BasePlanner):
             NoPlanFoundError: If the LLM cannot produce a valid plan
                 within ``max_retries`` attempts.
         """
-        graph_text = _serialise_graph(graph)
+        prompt_graph = _reduce_graph_for_prompt(graph, start, goal)
+        graph_text = _serialise_graph(prompt_graph)
         user_msg = (
             f"Attack graph:\n{graph_text}\n\n"
             f"Plan an attack from {start} to {goal}."
@@ -180,7 +185,8 @@ class LLMPlanner(BasePlanner):
         Raises:
             NoPlanFoundError: If the LLM cannot produce a valid plan.
         """
-        graph_text = _serialise_graph(graph)
+        prompt_graph = _reduce_graph_for_prompt(graph, start, goal)
+        graph_text = _serialise_graph(prompt_graph)
         user_msg = (
             f"Attack graph:\n{graph_text}\n\n"
             f"Plan an attack from {start} to {goal}."
@@ -352,6 +358,79 @@ def _serialise_graph(graph: nx.DiGraph) -> str:
             )
 
     return "\n".join(lines)
+
+
+def _reduce_graph_for_prompt(
+    graph: nx.DiGraph,
+    start: str,
+    goal: str,
+) -> nx.DiGraph:
+    """Reduce large graphs to a prompt-sized candidate subgraph.
+
+    The final plan is still validated against the original graph, so this
+    reduction only affects the LLM context window, not correctness.
+    """
+    if (
+        graph.number_of_nodes() <= _MAX_PROMPT_NODES
+        and graph.number_of_edges() <= _MAX_PROMPT_EDGES
+    ):
+        return graph
+
+    candidates: list[list[str]] = []
+    weight_fns = (
+        lambda u, v, d: 10.0 - d["data"].cvss_score,
+        lambda u, v, d: d["data"].detection_weight,
+        lambda u, v, d: 0.5 * (10.0 - d["data"].cvss_score) + 5.0 * d["data"].detection_weight,
+    )
+
+    for weight_fn in weight_fns:
+        try:
+            node_path = nx.shortest_path(graph, start, goal, weight=weight_fn)
+            if node_path not in candidates:
+                candidates.append(node_path)
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            pass
+
+    try:
+        path_gen = nx.shortest_simple_paths(
+            graph,
+            start,
+            goal,
+            weight=lambda u, v, d: 0.5 * (10.0 - d["data"].cvss_score) + 5.0 * d["data"].detection_weight,
+        )
+        for node_path in path_gen:
+            if node_path not in candidates:
+                candidates.append(node_path)
+            if len(candidates) >= _MAX_PROMPT_CANDIDATE_PATHS:
+                break
+    except (nx.NetworkXNoPath, nx.NodeNotFound):
+        pass
+
+    if not candidates:
+        return graph
+
+    reduced = nx.DiGraph()
+    nodes_to_keep: set[str] = set()
+    edges_to_keep: set[tuple[str, str]] = set()
+
+    for node_path in candidates:
+        nodes_to_keep.update(node_path)
+        for src, tgt in zip(node_path, node_path[1:]):
+            edges_to_keep.add((src, tgt))
+
+    for node_id in nodes_to_keep:
+        reduced.add_node(node_id, **graph.nodes[node_id])
+    for src, tgt in edges_to_keep:
+        reduced.add_edge(src, tgt, **graph.edges[src, tgt])
+
+    logger.info(
+        "Reduced prompt graph from %d nodes/%d edges to %d nodes/%d edges",
+        graph.number_of_nodes(),
+        graph.number_of_edges(),
+        reduced.number_of_nodes(),
+        reduced.number_of_edges(),
+    )
+    return reduced
 
 
 def _parse_json_steps(raw: str) -> list[dict]:

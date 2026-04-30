@@ -2,24 +2,24 @@
 <rect width="1040" height="336" fill="#f8fafc"/>
 <text x="24" y="34" font-size="24" font-family="Segoe UI" font-weight="700" fill="#0f172a">Path length by planner/view</text>
 <text x="24" y="79" font-size="14" font-family="Segoe UI" fill="#334155">astar</text>
-<rect x="260" y="58" width="295.4" height="22" rx="6" fill="#2563eb"/>
-<text x="565.4" y="75" font-size="13" font-family="Segoe UI" fill="#0f172a">6 steps</text>
+<rect x="260" y="58" width="213.3" height="22" rx="6" fill="#2563eb"/>
+<text x="483.3" y="75" font-size="13" font-family="Segoe UI" fill="#0f172a">6 steps</text>
 <text x="24" y="113" font-size="14" font-family="Segoe UI" fill="#334155">detection_combined</text>
-<rect x="260" y="92" width="541.5" height="22" rx="6" fill="#dc2626"/>
-<text x="811.5" y="109" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
+<rect x="260" y="92" width="391.1" height="22" rx="6" fill="#dc2626"/>
+<text x="661.1" y="109" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
 <text x="24" y="147" font-size="14" font-family="Segoe UI" fill="#334155">rl_seeded</text>
-<rect x="260" y="126" width="541.5" height="22" rx="6" fill="#16a34a"/>
-<text x="811.5" y="143" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
-<text x="24" y="181" font-size="14" font-family="Segoe UI" fill="#334155">llm_offline</text>
-<rect x="260" y="160" width="295.4" height="22" rx="6" fill="#f59e0b"/>
-<text x="565.4" y="177" font-size="13" font-family="Segoe UI" fill="#0f172a">6 steps</text>
+<rect x="260" y="126" width="391.1" height="22" rx="6" fill="#16a34a"/>
+<text x="661.1" y="143" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
+<text x="24" y="181" font-size="14" font-family="Segoe UI" fill="#334155">llm_groq</text>
+<rect x="260" y="160" width="355.6" height="22" rx="6" fill="#f59e0b"/>
+<text x="625.6" y="177" font-size="13" font-family="Segoe UI" fill="#0f172a">10 steps</text>
 <text x="24" y="215" font-size="14" font-family="Segoe UI" fill="#334155">detection_fastest</text>
-<rect x="260" y="194" width="295.4" height="22" rx="6" fill="#7c3aed"/>
-<text x="565.4" y="211" font-size="13" font-family="Segoe UI" fill="#0f172a">6 steps</text>
+<rect x="260" y="194" width="213.3" height="22" rx="6" fill="#7c3aed"/>
+<text x="483.3" y="211" font-size="13" font-family="Segoe UI" fill="#0f172a">6 steps</text>
 <text x="24" y="249" font-size="14" font-family="Segoe UI" fill="#334155">detection_stealthiest</text>
 <rect x="260" y="228" width="640.0" height="22" rx="6" fill="#0891b2"/>
-<text x="910.0" y="245" font-size="13" font-family="Segoe UI" fill="#0f172a">13 steps</text>
+<text x="910.0" y="245" font-size="13" font-family="Segoe UI" fill="#0f172a">18 steps</text>
 <text x="24" y="283" font-size="14" font-family="Segoe UI" fill="#334155">detection_pareto_balanced</text>
-<rect x="260" y="262" width="541.5" height="22" rx="6" fill="#db2777"/>
-<text x="811.5" y="279" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
+<rect x="260" y="262" width="391.1" height="22" rx="6" fill="#db2777"/>
+<text x="661.1" y="279" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
 </svg>

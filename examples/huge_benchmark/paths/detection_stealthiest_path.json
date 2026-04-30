@@ -1,7 +1,7 @@
 [
   {
     "source": "10.60.0.1",
-    "target": "10.60.0.40",
+    "target": "10.60.0.44",
     "cve_id": "CVE-2026-S0001",
     "module": "exploit/synthetic/ssh/cve_2026_s0001",
     "cvss": 7.5,
@@ -9,8 +9,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.0.40",
-    "target": "10.60.1.42",
+    "source": "10.60.0.44",
+    "target": "10.60.1.45",
     "cve_id": "CVE-2026-S0002",
     "module": "exploit/synthetic/ssh/cve_2026_s0002",
     "cvss": 7.5,
@@ -18,8 +18,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.1.42",
-    "target": "10.60.2.44",
+    "source": "10.60.1.45",
+    "target": "10.60.1.48",
     "cve_id": "CVE-2026-S0003",
     "module": "exploit/synthetic/ssh/cve_2026_s0003",
     "cvss": 7.5,
@@ -27,8 +27,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.2.44",
-    "target": "10.60.3.46",
+    "source": "10.60.1.48",
+    "target": "10.60.2.49",
     "cve_id": "CVE-2026-S0004",
     "module": "exploit/synthetic/ssh/cve_2026_s0004",
     "cvss": 7.5,
@@ -36,8 +36,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.3.46",
-    "target": "10.60.4.48",
+    "source": "10.60.2.49",
+    "target": "10.60.2.2",
     "cve_id": "CVE-2026-S0005",
     "module": "exploit/synthetic/ssh/cve_2026_s0005",
     "cvss": 7.5,
@@ -45,8 +45,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.4.48",
-    "target": "10.60.5.50",
+    "source": "10.60.2.2",
+    "target": "10.60.3.3",
     "cve_id": "CVE-2026-S0006",
     "module": "exploit/synthetic/ssh/cve_2026_s0006",
     "cvss": 7.5,
@@ -54,8 +54,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.5.50",
-    "target": "10.60.6.47",
+    "source": "10.60.3.3",
+    "target": "10.60.3.6",
     "cve_id": "CVE-2026-S0007",
     "module": "exploit/synthetic/ssh/cve_2026_s0007",
     "cvss": 7.5,
@@ -63,8 +63,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.6.47",
-    "target": "10.60.7.44",
+    "source": "10.60.3.6",
+    "target": "10.60.4.7",
     "cve_id": "CVE-2026-S0008",
     "module": "exploit/synthetic/ssh/cve_2026_s0008",
     "cvss": 7.5,
@@ -72,8 +72,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.7.44",
-    "target": "10.60.8.41",
+    "source": "10.60.4.7",
+    "target": "10.60.4.10",
     "cve_id": "CVE-2026-S0009",
     "module": "exploit/synthetic/ssh/cve_2026_s0009",
     "cvss": 7.5,
@@ -81,8 +81,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.8.41",
-    "target": "10.60.9.38",
+    "source": "10.60.4.10",
+    "target": "10.60.5.11",
     "cve_id": "CVE-2026-S0010",
     "module": "exploit/synthetic/ssh/cve_2026_s0010",
     "cvss": 7.5,
@@ -90,8 +90,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.9.38",
-    "target": "10.60.10.35",
+    "source": "10.60.5.11",
+    "target": "10.60.5.14",
     "cve_id": "CVE-2026-S0011",
     "module": "exploit/synthetic/ssh/cve_2026_s0011",
     "cvss": 7.5,
@@ -99,8 +99,8 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.10.35",
-    "target": "10.60.11.32",
+    "source": "10.60.5.14",
+    "target": "10.60.6.15",
     "cve_id": "CVE-2026-S0012",
     "module": "exploit/synthetic/ssh/cve_2026_s0012",
     "cvss": 7.5,
@@ -108,10 +108,55 @@
     "service": "ssh"
   },
   {
-    "source": "10.60.11.32",
-    "target": "10.60.11.50",
+    "source": "10.60.6.15",
+    "target": "10.60.6.18",
     "cve_id": "CVE-2026-S0013",
     "module": "exploit/synthetic/ssh/cve_2026_s0013",
+    "cvss": 7.5,
+    "detection_weight": 0.02,
+    "service": "ssh"
+  },
+  {
+    "source": "10.60.6.18",
+    "target": "10.60.7.19",
+    "cve_id": "CVE-2026-S0014",
+    "module": "exploit/synthetic/ssh/cve_2026_s0014",
+    "cvss": 7.5,
+    "detection_weight": 0.02,
+    "service": "ssh"
+  },
+  {
+    "source": "10.60.7.19",
+    "target": "10.60.8.21",
+    "cve_id": "CVE-2026-S0015",
+    "module": "exploit/synthetic/ssh/cve_2026_s0015",
+    "cvss": 7.5,
+    "detection_weight": 0.02,
+    "service": "ssh"
+  },
+  {
+    "source": "10.60.8.21",
+    "target": "10.60.9.23",
+    "cve_id": "CVE-2026-S0016",
+    "module": "exploit/synthetic/ssh/cve_2026_s0016",
+    "cvss": 7.5,
+    "detection_weight": 0.02,
+    "service": "ssh"
+  },
+  {
+    "source": "10.60.9.23",
+    "target": "10.60.10.25",
+    "cve_id": "CVE-2026-S0017",
+    "module": "exploit/synthetic/ssh/cve_2026_s0017",
+    "cvss": 7.5,
+    "detection_weight": 0.02,
+    "service": "ssh"
+  },
+  {
+    "source": "10.60.10.25",
+    "target": "10.60.11.50",
+    "cve_id": "CVE-2026-S0018",
+    "module": "exploit/synthetic/ssh/cve_2026_s0018",
     "cvss": 7.5,
     "detection_weight": 0.02,
     "service": "ssh"

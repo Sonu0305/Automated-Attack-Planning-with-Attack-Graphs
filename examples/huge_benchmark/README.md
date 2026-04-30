@@ -5,23 +5,27 @@ Synthetic, local-only benchmark for comparing planner behavior on a large attack
 ## Scale
 
 - Devices: `600`
-- Attack edges: `1597`
+- Attack edges: `1603`
 - Zones: `12`
 - Start: `10.60.0.1`
 - Goal: `10.60.11.50`
-- Timing repeats per planner: `25`
+- Timing repeats per planner: `5`
+- LLM backend used in this run: `groq`
 
 ## Planner Results
 
 | Planner/view | Steps | Exploit cost | Detection cost | Combined cost | Mean planning time |
 |---|---:|---:|---:|---:|---:|
-| `astar` | 6 | 1.2 | 5.7 | 29.1 | 0.0662 ms |
-| `detection_combined` | 11 | 14.3 | 1.54 | 14.85 | 0.4248 ms |
-| `rl_seeded` | 11 | 14.3 | 1.54 | 14.85 | 0.1671 ms |
-| `llm_offline` | 6 | 1.2 | 5.7 | 29.1 | 3.253 ms |
-| `detection_fastest` | 6 | 1.2 | 5.7 | 29.1 | 86.2081 ms |
-| `detection_stealthiest` | 13 | 32.5 | 0.26 | 17.55 | 86.2081 ms |
-| `detection_pareto_balanced` | 11 | 14.3 | 1.54 | 14.85 | 86.2081 ms |
+| `astar` | 6 | 1.2 | 5.7 | 29.1 | 0.179 ms |
+| `detection_combined` | 11 | 14.3 | 1.54 | 14.85 | 0.6222 ms |
+| `rl_seeded` | 11 | 14.3 | 1.54 | 14.85 | 0.1502 ms |
+| `llm_groq` | 10 | 23.1 | 2.5 | 24.05 | 2242.9294 ms |
+| `detection_fastest` | 6 | 1.2 | 5.7 | 29.1 | 90.3948 ms |
+| `detection_stealthiest` | 18 | 45.0 | 0.36 | 24.3 | 90.3948 ms |
+| `detection_pareto_balanced` | 11 | 14.3 | 1.54 | 14.85 | 90.3948 ms |
+
+Live Groq timing is intentionally sampled once even when the other planners use repeated local timing runs.
+Live Groq path selection is also nondeterministic, so a fresh rerun may choose a different valid route through the same reduced prompt subgraph.
 
 ## Visuals
 
