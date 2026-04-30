@@ -11,8 +11,8 @@
 <rect x="260" y="126" width="391.1" height="22" rx="6" fill="#16a34a"/>
 <text x="661.1" y="143" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
 <text x="24" y="181" font-size="14" font-family="Segoe UI" fill="#334155">llm_groq</text>
-<rect x="260" y="160" width="355.6" height="22" rx="6" fill="#f59e0b"/>
-<text x="625.6" y="177" font-size="13" font-family="Segoe UI" fill="#0f172a">10 steps</text>
+<rect x="260" y="160" width="391.1" height="22" rx="6" fill="#f59e0b"/>
+<text x="661.1" y="177" font-size="13" font-family="Segoe UI" fill="#0f172a">11 steps</text>
 <text x="24" y="215" font-size="14" font-family="Segoe UI" fill="#334155">detection_fastest</text>
 <rect x="260" y="194" width="213.3" height="22" rx="6" fill="#7c3aed"/>
 <text x="483.3" y="211" font-size="13" font-family="Segoe UI" fill="#0f172a">6 steps</text>

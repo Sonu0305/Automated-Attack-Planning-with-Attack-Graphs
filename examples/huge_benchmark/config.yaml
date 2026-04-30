@@ -5,7 +5,7 @@ lab:
   attacker_ip: "10.60.0.1"
   network: "10.60.0.0/16"
   hosts: []
-  goal: "10.60.11.50"
+  goal: "10.60.11.500"
 
 metasploit:
   host: "127.0.0.1"

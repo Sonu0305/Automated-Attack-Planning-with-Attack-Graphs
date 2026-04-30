@@ -46,7 +46,7 @@
   },
   {
     "source": "10.60.9.37",
-    "target": "10.60.11.50",
+    "target": "10.60.11.500",
     "cve_id": "CVE-2026-F0006",
     "module": "exploit/synthetic/rdp/cve_2026_f0006",
     "cvss": 9.8,

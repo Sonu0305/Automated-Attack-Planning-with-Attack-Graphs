@@ -73,7 +73,7 @@
   },
   {
     "source": "10.60.8.46",
-    "target": "10.60.9.1",
+    "target": "10.60.9.51",
     "cve_id": "CVE-2026-B0009",
     "module": "exploit/synthetic/http/cve_2026_b0009",
     "cvss": 8.7,
@@ -81,8 +81,8 @@
     "service": "http"
   },
   {
-    "source": "10.60.9.1",
-    "target": "10.60.10.6",
+    "source": "10.60.9.51",
+    "target": "10.60.10.56",
     "cve_id": "CVE-2026-B0010",
     "module": "exploit/synthetic/http/cve_2026_b0010",
     "cvss": 8.7,
@@ -90,8 +90,8 @@
     "service": "http"
   },
   {
-    "source": "10.60.10.6",
-    "target": "10.60.11.50",
+    "source": "10.60.10.56",
+    "target": "10.60.11.500",
     "cve_id": "CVE-2026-B0011",
     "module": "exploit/synthetic/http/cve_2026_b0011",
     "cvss": 8.7,
